@@ -111,6 +111,90 @@ function visibleTimeline(state: GameState, actor?: Player) {
     .join('\n');
 }
 
+function publicAliveSummary(state: GameState) {
+  return livingPlayers(state)
+    .map((player) => player.name)
+    .join('、');
+}
+
+function targetSummary(candidates: Player[]) {
+  return candidates.map((player) => `${player.id}=${player.name}(${player.status})`).join('、');
+}
+
+function roleStrategyGuide(state: GameState, actor: Player, actionName: string, candidates: Player[]) {
+  const visible = visibleTimeline(state, actor) || '暂无';
+  const common = [
+    '像真人玩家一样决策：不要机械按座位、列表顺序或固定偏好选人。',
+    '先判断当前信息量、风险和收益，再给出一个短理由。',
+    '如果没有强信息，可以选择一个符合你角色目标的试探性目标，但要让理由自然。',
+    `存活玩家：${publicAliveSummary(state) || '暂无'}`,
+    `可选目标：${targetSummary(candidates) || '暂无'}`,
+    `你当前可见事件：\n${visible}`,
+  ];
+
+  if (actor.role === 'werewolf') {
+    return [
+      ...common,
+      '狼人策略：优先考虑谁最像神职、谁最可能带队、谁死亡后最能制造混乱。',
+      '不要暴露狼人视角，不要总是刀发言最强或最弱的人；要考虑嫁祸和隐藏狼队意图。',
+    ].join('\n');
+  }
+
+  if (actor.role === 'seer') {
+    return [
+      ...common,
+      '预言家策略：优先查验发言矛盾、站边摇摆、可能带节奏、或能决定白天票型的人。',
+      '不要重复查验已有高可信信息的人；如果首夜信息少，可以查验影响力较大的玩家。',
+    ].join('\n');
+  }
+
+  if (actor.role === 'witch' && actionName.includes('解药')) {
+    return [
+      ...common,
+      '女巫解药策略：首夜可以偏向救人，但如果局势允许，也可以保留解药。',
+      '判断被刀目标的价值、是否像神职、是否可能被狼人故意刀来骗药。',
+    ].join('\n');
+  }
+
+  if (actor.role === 'witch' && actionName.includes('毒药')) {
+    return [
+      ...common,
+      '女巫毒药策略：毒药是高风险资源，不要随意毒；只有在怀疑强、局势紧或能打开局面时使用。',
+      '如果信息不足，可以选择不用毒药，等待白天发言积累更多信息。',
+    ].join('\n');
+  }
+
+  if (actor.role === 'guard') {
+    return [
+      ...common,
+      '守卫策略：保护可能被狼人袭击的关键玩家，避免只守自己觉得安全的人。',
+      '结合上一夜守护限制，考虑预言家嫌疑位、强发言位、或被狼人可能针对的玩家。',
+    ].join('\n');
+  }
+
+  if (actor.role === 'hunter') {
+    return [
+      ...common,
+      '猎人策略：开枪要考虑收益和误伤风险。只有当你有明确怀疑或必须改变局面时才开枪。',
+    ].join('\n');
+  }
+
+  return common.join('\n');
+}
+
+function decisionTemperature(actor: Player) {
+  if (actor.role === 'werewolf') {
+    return 0.65;
+  }
+  if (actor.role === 'seer' || actor.role === 'guard') {
+    return 0.58;
+  }
+  if (actor.role === 'witch') {
+    return 0.52;
+  }
+  return 0.6;
+}
+
 async function askJson(llm: LlmClient, request: LlmGenerateRequest): Promise<Record<string, unknown>> {
   return llm.generate(request);
 }
@@ -146,11 +230,10 @@ async function askTarget(
         `动作：${actionName}`,
         extra,
         `本次行动扰动值：${decisionNonce}`,
-        `可选目标：${candidates.map((player) => `${player.id}=${player.name}(${player.status})`).join('、')}`,
-        `你当前可见事件：\n${visibleTimeline(state, actor) || '暂无'}`,
+        `策略要求：\n${roleStrategyGuide(state, actor, actionName, candidates)}`,
         '输出格式：{"targetId":"目标 id","reason":"一句简短理由"}',
       ].join('\n\n'),
-      temperature: 0.45,
+      temperature: decisionTemperature(actor),
     });
     const normalizedTargetId = normalizeTargetId(response.targetId, candidates);
     if (!normalizedTargetId) {
@@ -189,10 +272,10 @@ async function askBoolean(
         `动作：${actionName}`,
         extra,
         `本次行动扰动值：${decisionNonce}`,
-        `你当前可见事件：\n${visibleTimeline(state, actor) || '暂无'}`,
+        `策略要求：\n${roleStrategyGuide(state, actor, actionName, livingPlayers(state))}`,
         '输出格式：{"use":true,"reason":"一句简短理由"}',
       ].join('\n\n'),
-      temperature: 0.35,
+      temperature: decisionTemperature(actor),
     });
     if (typeof response.use !== 'boolean') {
       throw new Error(`模型没有返回合法 use 布尔值：${String(response.use ?? '空')}`);

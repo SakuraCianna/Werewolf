@@ -15,6 +15,8 @@ export type GamePhase =
 
 export type ViewMode = 'audience' | 'god';
 
+export type GameSpeed = 'slow' | 'normal' | 'fast';
+
 export type PlayerStatus = 'alive' | 'dead';
 
 export type EventKind =

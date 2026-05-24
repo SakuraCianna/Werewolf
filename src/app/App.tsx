@@ -8,7 +8,7 @@ import { advanceGame, roleSummary } from '../game/playable/playableGame';
 import { createGame } from '../game/setup/createGame';
 import type { SettlementReport } from '../game/settlement/settlement';
 import { createCheckpoint, rollbackToCheckpoint } from '../game/timeline/timeline';
-import type { GamePhase, GameState, ViewMode } from '../game/types';
+import type { GamePhase, GameSpeed, GameState, Role, ViewMode } from '../game/types';
 import { createLlmClientFromEnv } from '../llm/createLlmClient';
 import type { LlmClient } from '../llm/types';
 
@@ -22,6 +22,21 @@ const PHASE_TEXT: Record<GamePhase, string> = {
   'exile-result': '放逐结算',
   'hunter-shot': '猎人技能',
   settlement: '赛后复盘',
+};
+
+const AUTO_ADVANCE_DELAY: Record<GameSpeed, number> = {
+  slow: 2400,
+  normal: 1200,
+  fast: 520,
+};
+
+const ROLE_TEXT: Record<Role, string> = {
+  werewolf: '狼人',
+  villager: '村民',
+  seer: '预言家',
+  witch: '女巫',
+  hunter: '猎人',
+  guard: '守卫',
 };
 
 function isEditableShortcutTarget(target: EventTarget | null) {
@@ -90,8 +105,70 @@ function fallbackMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 
+function timelineVisibilityText(visibility: GameState['events'][number]['visibility']) {
+  if (visibility === 'god') {
+    return '上帝视角';
+  }
+  if (visibility === 'audience') {
+    return '观众补充';
+  }
+  return '公开';
+}
+
+function buildTimelineExport(state: GameState, report: SettlementReport) {
+  const players = state.players
+    .map((player) => `- ${player.name}：${ROLE_TEXT[player.role]} / ${player.status === 'alive' ? '存活' : '死亡'}`)
+    .join('\n');
+  const events = state.events
+    .map((event, index) => {
+      const actor = state.players.find((player) => player.id === event.playerId)?.name;
+      const target = state.players.find((player) => player.id === event.targetId)?.name;
+      return [
+        `### ${index + 1}. ${event.title}`,
+        `- 类型：${event.kind}`,
+        `- 阶段：${PHASE_TEXT[event.phase]}`,
+        `- 天数：第 ${event.day} 天`,
+        `- 可见性：${timelineVisibilityText(event.visibility)}`,
+        actor ? `- 行动者：${actor}` : '',
+        target ? `- 目标：${target}` : '',
+        `- 内容：${event.content}`,
+      ]
+        .filter(Boolean)
+        .join('\n');
+    })
+    .join('\n\n');
+  const scores = report.players
+    .map(
+      (player) =>
+        `- ${player.playerName}：表演 ${player.scores.performance}/10，逻辑 ${player.scores.logic}/10，操作 ${player.scores.operation}/10。${player.comment}`,
+    )
+    .join('\n');
+
+  return [
+    '# AI 狼人杀完整时间线',
+    '',
+    `导出时间：${new Date().toLocaleString()}`,
+    `本局人数：${state.playerCount}`,
+    `胜利阵营：${state.runtime.winner ?? '未知'}`,
+    '',
+    '## 玩家身份',
+    players,
+    '',
+    '## 赛后总结',
+    report.summary,
+    '',
+    '## 玩家评分',
+    scores,
+    '',
+    '## 完整事件',
+    events,
+    '',
+  ].join('\n');
+}
+
 export function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('audience');
+  const [gameSpeed, setGameSpeed] = useState<GameSpeed>('normal');
   const [playerCount, setPlayerCount] = useState(9);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [settlementReport, setSettlementReport] = useState<SettlementReport | null>(null);
@@ -191,10 +268,10 @@ export function App() {
 
     const timer = window.setTimeout(() => {
       void advance();
-    }, 1200);
+    }, AUTO_ADVANCE_DELAY[gameSpeed]);
 
     return () => window.clearTimeout(timer);
-  }, [advance, gameState, isAdvancing, isAutoPlaying, settlementReport]);
+  }, [advance, gameSpeed, gameState, isAdvancing, isAutoPlaying, settlementReport]);
 
   const rollbackStep = useCallback(() => {
     if (!gameState || gameState.checkpoints.length === 0) {
@@ -223,10 +300,23 @@ export function App() {
     }
   }, [gameState, viewMode]);
 
+  const rollbackCheckpoint = useCallback(
+    (checkpointId: string) => {
+      if (!gameState) {
+        return;
+      }
+
+      setIsAutoPlaying(false);
+      setGameState({ ...rollbackToCheckpoint(gameState, checkpointId), viewMode });
+      setSettlementReport(null);
+    },
+    [gameState, viewMode],
+  );
+
   const godSummary = useMemo(() => (gameState ? roleSummary(gameState) : []), [gameState]);
 
   if (settlementReport) {
-    return <SettlementView report={settlementReport} onReturnLobby={resetToLobby} />;
+    return <SettlementView report={settlementReport} timelineText={gameState ? buildTimelineExport(gameState, settlementReport) : ''} onReturnLobby={resetToLobby} />;
   }
 
   if (!gameState) {
@@ -270,14 +360,18 @@ export function App() {
           </div>
           <GameControls
             viewMode={viewMode}
+            gameSpeed={gameSpeed}
             isAutoPlaying={isAutoPlaying}
             canRollback={gameState.checkpoints.length > 0}
             isAdvancing={isAdvancing}
+            checkpoints={gameState.checkpoints}
             onToggleView={toggleView}
             onAdvance={advance}
             onToggleAutoPlay={() => setIsAutoPlaying((current) => !current)}
+            onSpeedChange={setGameSpeed}
             onRollbackStep={rollbackStep}
             onRollbackPhase={rollbackPhase}
+            onRollbackCheckpoint={rollbackCheckpoint}
             onNewGame={resetToLobby}
           />
         </header>
