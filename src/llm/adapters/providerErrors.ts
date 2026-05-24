@@ -3,9 +3,11 @@ export async function buildProviderErrorMessage(
   response: Response,
 ): Promise<string> {
   const bodySnippet = await readBodySnippet(response, 200);
+  const statusText = response.statusText.trim();
+  const statusDetails = statusText ? `${response.status} ${statusText}` : `${response.status}`;
   return bodySnippet
-    ? `${provider} request failed: ${response.status} ${bodySnippet}`
-    : `${provider} request failed: ${response.status}`;
+    ? `${provider} request failed: ${statusDetails} ${bodySnippet}`
+    : `${provider} request failed: ${statusDetails}`;
 }
 
 async function readBodySnippet(response: Response, maxLength: number): Promise<string> {

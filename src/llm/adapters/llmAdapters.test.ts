@@ -133,13 +133,14 @@ describe('LLM adapters', () => {
     );
   });
 
-  it('includes provider body snippets in OpenAI-compatible non-ok errors', async () => {
+  it('includes provider status text and body snippets in OpenAI-compatible non-ok errors', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({
         ok: false,
         status: 429,
-        text: async () => 'rate\nlimited',
+        statusText: 'Too Many Requests',
+        text: async () => '{"error":"rate\nlimit"}',
       })),
     );
 
@@ -150,17 +151,18 @@ describe('LLM adapters', () => {
     });
 
     await expect(adapter.generate(request)).rejects.toThrow(
-      'OpenAI-compatible request failed: 429 rate limited',
+      'OpenAI-compatible request failed: 429 Too Many Requests {"error":"rate limit"}',
     );
     await expect(adapter.generate(request)).rejects.not.toThrow('secret-key');
   });
 
-  it('includes provider body snippets in Anthropic non-ok errors', async () => {
+  it('includes provider status text and body snippets in Anthropic non-ok errors', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({
         ok: false,
         status: 500,
+        statusText: 'Internal Server Error',
         text: async () => 'server\nfailed',
       })),
     );
@@ -173,7 +175,7 @@ describe('LLM adapters', () => {
     });
 
     await expect(adapter.generate(request)).rejects.toThrow(
-      'Anthropic request failed: 500 server failed',
+      'Anthropic request failed: 500 Internal Server Error server failed',
     );
     await expect(adapter.generate(request)).rejects.not.toThrow('secret-key');
   });
