@@ -91,6 +91,8 @@ Werewolf/
 
 `public/personas/` 下放置多份 Markdown 文件。开局时系统从可用人物设定中随机抽取与人数相同的角色，绑定到 AI 玩家。
 
+实现时通过 `public/personas/index.json` 枚举可加载的人设 Markdown 文件；新增人设需要同步更新该 manifest。
+
 每份人物设定建议包含：
 
 - 姓名
