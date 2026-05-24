@@ -1,5 +1,6 @@
 import { parseLlmJson } from '../parseLlmJson';
 import type { AnthropicClaudeConfig, LlmClient, LlmGenerateRequest } from '../types';
+import { buildProviderErrorMessage } from './providerErrors';
 
 export class AnthropicClaudeAdapter implements LlmClient {
   constructor(private readonly config: AnthropicClaudeConfig) {}
@@ -22,7 +23,7 @@ export class AnthropicClaudeAdapter implements LlmClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Anthropic request failed: ${response.status}`);
+      throw new Error(await buildProviderErrorMessage('Anthropic', response));
     }
 
     const data = (await response.json()) as { content?: Array<{ type: string; text?: string }> };

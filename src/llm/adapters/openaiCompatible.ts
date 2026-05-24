@@ -1,5 +1,6 @@
 import { parseLlmJson } from '../parseLlmJson';
 import type { LlmClient, LlmGenerateRequest, OpenAICompatibleConfig } from '../types';
+import { buildProviderErrorMessage } from './providerErrors';
 
 export class OpenAICompatibleAdapter implements LlmClient {
   constructor(private readonly config: OpenAICompatibleConfig) {}
@@ -22,7 +23,7 @@ export class OpenAICompatibleAdapter implements LlmClient {
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI-compatible request failed: ${response.status}`);
+      throw new Error(await buildProviderErrorMessage('OpenAI-compatible', response));
     }
 
     const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
