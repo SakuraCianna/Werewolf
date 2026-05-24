@@ -40,4 +40,40 @@ describe('loadMarkdownAssets', () => {
 
     await expect(loadRulesMarkdown()).rejects.toThrow('Failed to load /rules/werewolf-rules.md: 404');
   });
+
+  it('throws a readable error when persona manifest is missing files', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({}),
+    })));
+
+    await expect(loadPersonas()).rejects.toThrow(
+      'Invalid persona manifest /personas/index.json: expected files to be a non-empty string[] of .md files',
+    );
+  });
+
+  it('throws a readable error when persona manifest contains a non-markdown file', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ files: ['lin-che.md', 'bad.txt'] }),
+    })));
+
+    await expect(loadPersonas()).rejects.toThrow(
+      'Invalid persona manifest /personas/index.json: expected files to be a non-empty string[] of .md files',
+    );
+  });
+
+  it('throws a readable error when a persona markdown file cannot load', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url === '/personas/index.json') {
+        return {
+          ok: true,
+          json: async () => ({ files: ['bad.md'] }),
+        };
+      }
+      return { ok: false, status: 404 };
+    }));
+
+    await expect(loadPersonas()).rejects.toThrow('Failed to load /personas/bad.md: 404');
+  });
 });
