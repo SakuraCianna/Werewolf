@@ -8,6 +8,7 @@ export class OpenAICompatibleAdapter implements LlmClient {
   async generate(request: LlmGenerateRequest): Promise<Record<string, unknown>> {
     const response = await fetch(`${this.config.baseUrl.replace(/\/$/, '')}/v1/chat/completions`, {
       method: 'POST',
+      cache: 'no-store',
       headers: {
         Authorization: `Bearer ${this.config.apiKey}`,
         'Content-Type': 'application/json',

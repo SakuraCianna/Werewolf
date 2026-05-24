@@ -8,6 +8,7 @@ export class AnthropicClaudeAdapter implements LlmClient {
   async generate(request: LlmGenerateRequest): Promise<Record<string, unknown>> {
     const response = await fetch(`${this.config.baseUrl.replace(/\/$/, '')}/v1/messages`, {
       method: 'POST',
+      cache: 'no-store',
       headers: {
         'x-api-key': this.config.apiKey,
         'anthropic-version': this.config.anthropicVersion,

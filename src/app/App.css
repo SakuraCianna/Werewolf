@@ -348,6 +348,15 @@ button:disabled {
   background: rgba(18, 20, 28, 0.78);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
+  scrollbar-width: none;
+}
+
+.god-panel::-webkit-scrollbar,
+.message-list::-webkit-scrollbar,
+.settlement-grid::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .god-panel h2 {
@@ -410,7 +419,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .message {
@@ -517,7 +526,7 @@ button:disabled {
   align-content: start;
   gap: 14px;
   padding: 4px 2px 8px;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .settlement-card {

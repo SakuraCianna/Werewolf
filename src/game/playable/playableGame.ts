@@ -42,7 +42,7 @@ function chooseFallbackTarget(state: GameState, candidates: Player[], salt = 0):
     return undefined;
   }
 
-  const index = (state.events.length + state.day + salt) % candidates.length;
+  const index = Math.abs(state.events.length * 7 + state.day * 11 + salt * 13) % candidates.length;
   return candidates[index].id;
 }
 
@@ -87,13 +87,26 @@ function addEvent(
     colorToken: GameEvent['colorToken'];
     playerId?: string;
     targetId?: string;
+    visibility?: GameEvent['visibility'];
   },
 ) {
   return appendEvent(input.phase ? { ...state, phase: input.phase } : state, input);
 }
 
-function publicTimeline(state: GameState) {
+function visibleTimeline(state: GameState, actor?: Player) {
   return state.events
+    .filter((event) => {
+      if (event.visibility !== 'god') {
+        return true;
+      }
+      if (!actor) {
+        return false;
+      }
+      if (event.playerId === actor.id) {
+        return true;
+      }
+      return actor.role === 'werewolf' && event.title.includes('狼人袭击');
+    })
     .slice(-18)
     .map((event) => `${event.title}：${event.content}`)
     .join('\n');
@@ -130,19 +143,19 @@ async function askTarget(
         `动作：${actionName}`,
         extra,
         `可选目标：${candidates.map((player) => `${player.id}=${player.name}(${player.status})`).join('、')}`,
-        `公开事件：\n${publicTimeline(state) || '暂无'}`,
+        `你当前可见事件：\n${visibleTimeline(state, actor) || '暂无'}`,
         '输出格式：{"targetId":"目标 id","reason":"一句简短理由"}',
       ].join('\n\n'),
       temperature: 0.45,
     });
     return {
-      targetId: normalizeTargetId(response.targetId, candidates) ?? chooseFallbackTarget(state, candidates),
+      targetId: normalizeTargetId(response.targetId, candidates) ?? chooseFallbackTarget(state, candidates, actor.id.length + actionName.length),
       reason: typeof response.reason === 'string' ? response.reason : undefined,
       fallback: false,
     };
   } catch (error) {
     return {
-      targetId: chooseFallbackTarget(state, candidates),
+      targetId: chooseFallbackTarget(state, candidates, actor.id.length + actionName.length),
       fallback: true,
       error: error instanceof Error ? error.message : String(error),
     };
@@ -171,7 +184,7 @@ async function askBoolean(
         `你的私有记忆：${actor.privateMemory.join('\n') || '暂无'}`,
         `动作：${actionName}`,
         extra,
-        `公开事件：\n${publicTimeline(state) || '暂无'}`,
+        `你当前可见事件：\n${visibleTimeline(state, actor) || '暂无'}`,
         '输出格式：{"use":true,"reason":"一句简短理由"}',
       ].join('\n\n'),
       temperature: 0.35,
@@ -256,6 +269,8 @@ async function runWerewolf(state: GameState, llm?: LlmClient): Promise<GameState
       title: `${nightLabel(state.day)} · 狼人袭击`,
       content: `狼人选择杀死${playerName(state, targetId)}。${decision.fallback ? '（本地规则兜底）' : ''}`,
       colorToken: 'kill',
+      visibility: 'god',
+      playerId: actor.id,
       targetId,
     });
   }
@@ -283,6 +298,7 @@ async function runSeer(state: GameState, llm?: LlmClient): Promise<GameState> {
       title: `${nightLabel(state.day)} · 预言家查验`,
       content: `${seer.name}查验了${playerName(state, targetId)}，结果为${result}。`,
       colorToken: 'neutral',
+      visibility: 'god',
       playerId: seer.id,
       targetId,
     });
@@ -315,6 +331,7 @@ async function runWitch(state: GameState, llm?: LlmClient): Promise<GameState> {
         title: `${nightLabel(state.day)} · 女巫救人`,
         content: `女巫使用解药，${playerName(state, victimId)}起死回生。${save.fallback ? '（本地规则兜底）' : ''}`,
         colorToken: 'revive',
+        visibility: 'god',
         playerId: witch.id,
         targetId: victimId,
       });
@@ -340,6 +357,7 @@ async function runWitch(state: GameState, llm?: LlmClient): Promise<GameState> {
           title: `${nightLabel(state.day)} · 女巫毒药`,
           content: `女巫使用毒药，${playerName(state, poison.targetId)}中毒死亡。${poison.fallback ? '（本地规则兜底）' : ''}`,
           colorToken: 'kill',
+          visibility: 'god',
           playerId: witch.id,
           targetId: poison.targetId,
         });
@@ -370,6 +388,7 @@ async function runGuard(state: GameState, llm?: LlmClient): Promise<GameState> {
       title: `${nightLabel(state.day)} · 守卫保护`,
       content: `守卫保护了${playerName(state, decision.targetId)}。${decision.fallback ? '（本地规则兜底）' : ''}`,
       colorToken: 'protect',
+      visibility: 'god',
       playerId: guard.id,
       targetId: decision.targetId,
     });

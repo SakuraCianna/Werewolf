@@ -7,6 +7,7 @@ interface AppendEventInput {
   colorToken: GameEvent['colorToken'];
   playerId?: string;
   targetId?: string;
+  visibility?: GameEvent['visibility'];
 }
 
 function cloneStateForCheckpoint(state: GameState) {

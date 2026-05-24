@@ -63,6 +63,25 @@ function centerText(state: GameState) {
   }
 }
 
+function audienceCenterText(state: GameState) {
+  if (state.phase === 'night' || state.phase === 'night-result') {
+    return '夜晚行动进行中';
+  }
+  if (state.phase === 'day-discussion') {
+    return state.runtime.speakerQueue.length > 0 ? '玩家依次发言中' : '准备进入投票';
+  }
+  if (state.phase === 'vote') {
+    return '玩家正在投票';
+  }
+  if (state.phase === 'hunter-shot') {
+    return '技能结算中';
+  }
+  if (state.phase === 'settlement') {
+    return '游戏结束';
+  }
+  return '等待推进';
+}
+
 function currentSpeakerId(state: GameState) {
   return state.runtime.step === 'discussion' ? state.runtime.speakerQueue[0] : undefined;
 }
@@ -267,7 +286,7 @@ export function App() {
           speakingPlayerId={currentSpeakerId(gameState)}
           day={gameState.day}
           phaseText={PHASE_TEXT[gameState.phase]}
-          centerText={centerText(gameState)}
+          centerText={viewMode === 'god' ? centerText(gameState) : audienceCenterText(gameState)}
           revealRoles={viewMode === 'god'}
         />
         {viewMode === 'god' ? (
@@ -280,7 +299,7 @@ export function App() {
         ) : null}
         {notice ? <div className="floating-notice">{notice}</div> : null}
       </section>
-      <StatusFeed events={gameState.events} />
+      <StatusFeed events={gameState.events} viewMode={viewMode} />
     </main>
   );
 }

@@ -1,22 +1,24 @@
 import { useRef } from 'react';
-import type { GameEvent } from '../../game/types';
+import type { GameEvent, ViewMode } from '../../game/types';
 import { animateMessageIn } from '../../motion/messageAnimations';
 import { useGSAP } from '../../motion/gsapSetup';
 
 interface StatusFeedProps {
   events: GameEvent[];
+  viewMode: ViewMode;
 }
 
-export function StatusFeed({ events }: StatusFeedProps) {
+export function StatusFeed({ events, viewMode }: StatusFeedProps) {
   const listRef = useRef<HTMLDivElement>(null);
-  const latestEvent = events.at(-1);
+  const visibleEvents = viewMode === 'god' ? events : events.filter((event) => event.visibility !== 'god');
+  const latestEvent = visibleEvents.at(-1);
 
   useGSAP(
     () => {
       const latestMessage = listRef.current?.lastElementChild;
       animateMessageIn(latestMessage instanceof HTMLElement ? latestMessage : null, latestEvent?.colorToken ?? 'neutral');
     },
-    { scope: listRef, dependencies: [latestEvent?.id], revertOnUpdate: true },
+    { scope: listRef, dependencies: [latestEvent?.id, visibleEvents.length], revertOnUpdate: true },
   );
 
   return (
@@ -26,7 +28,7 @@ export function StatusFeed({ events }: StatusFeedProps) {
         <p>右侧记录公开发言和局内状态变化，消息列表在面板内部滚动。</p>
       </header>
       <div className="message-list" ref={listRef}>
-        {events.map((event) => (
+        {visibleEvents.map((event) => (
           <article className={`message ${event.colorToken}`} key={event.id}>
             <span className="time">{event.title}</span>
             {event.content}
