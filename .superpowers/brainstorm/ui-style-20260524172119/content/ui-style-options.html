@@ -1,0 +1,328 @@
+<style>
+  .style-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    align-items: stretch;
+  }
+  .style-card {
+    border: 1px solid #d9dee8;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .style-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(18, 31, 56, .12);
+  }
+  .style-card.selected {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .16), 0 14px 30px rgba(18, 31, 56, .14);
+  }
+  .scene {
+    min-height: 430px;
+    padding: 14px;
+    font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  }
+  .scene-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  .mini-pill {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 11px;
+    background: rgba(255,255,255,.76);
+    border: 1px solid rgba(255,255,255,.62);
+  }
+  .room {
+    background:
+      radial-gradient(circle at 50% 38%, rgba(255,255,255,.2), transparent 35%),
+      linear-gradient(145deg, #161821, #283044 62%, #1b1f2e);
+    color: #f7f0df;
+  }
+  .round-table {
+    width: 230px;
+    height: 230px;
+    margin: 22px auto 16px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, #89633e 0 38%, #61442d 39% 64%, #2a1d17 65%);
+    box-shadow: 0 24px 50px rgba(0,0,0,.42), inset 0 0 0 8px rgba(255,255,255,.06);
+    position: relative;
+  }
+  .seat {
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #f2d8a7;
+    color: #2f2216;
+    font-weight: 800;
+    border: 3px solid rgba(255,255,255,.72);
+    box-shadow: 0 8px 18px rgba(0,0,0,.34);
+  }
+  .seat small {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    opacity: .75;
+  }
+  .seat.s1 { left: 88px; top: -18px; }
+  .seat.s2 { right: -8px; top: 44px; }
+  .seat.s3 { right: 12px; bottom: 18px; }
+  .seat.s4 { left: 88px; bottom: -18px; }
+  .seat.s5 { left: 12px; bottom: 18px; }
+  .seat.s6 { left: -8px; top: 44px; }
+  .room-log {
+    display: grid;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .room-line {
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.08);
+    border-radius: 8px;
+    padding: 8px 9px;
+  }
+  .broadcast {
+    background: #f6f8fb;
+    color: #142033;
+  }
+  .stage {
+    background: linear-gradient(135deg, #161a25, #343d57);
+    color: white;
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 150px;
+    display: grid;
+    align-content: space-between;
+    box-shadow: inset 0 -40px 60px rgba(0,0,0,.22);
+  }
+  .speaker {
+    font-size: 20px;
+    font-weight: 800;
+  }
+  .quote {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #dce7ff;
+  }
+  .lower-third {
+    margin-top: 10px;
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+  }
+  .broadcast-body {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #dce2ec;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .panel h4 {
+    margin: 0 0 8px;
+    font-size: 12px;
+  }
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 7px;
+    font-size: 11px;
+    padding: 6px 0;
+    border-top: 1px solid #eef1f6;
+  }
+  .player-chip {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
+    padding: 5px 0;
+    border-top: 1px solid #eef1f6;
+  }
+  .debug {
+    background: #0e1117;
+    color: #d6deeb;
+    font-family: "JetBrains Mono", Consolas, monospace;
+  }
+  .debug-grid {
+    display: grid;
+    grid-template-columns: .78fr 1.22fr;
+    gap: 9px;
+  }
+  .debug-panel {
+    border: 1px solid #303846;
+    background: #151a23;
+    border-radius: 6px;
+    padding: 9px;
+    min-height: 88px;
+  }
+  .debug-panel h4 {
+    margin: 0 0 8px;
+    color: #8bd5ff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .code-line {
+    font-size: 10px;
+    line-height: 1.55;
+    color: #bdc7d8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .json-key { color: #7dd3fc; }
+  .json-string { color: #a7f3d0; }
+  .json-warn { color: #fbbf24; }
+  .card-body {
+    padding: 14px 15px 16px;
+    border-top: 1px solid #e4e8f0;
+  }
+  .card-body h3 {
+    margin: 0 0 7px;
+    font-size: 17px;
+  }
+  .card-body p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #5c6678;
+  }
+  @media (max-width: 1150px) {
+    .style-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<h2>第一版 UI 气质选择</h2>
+<p class="subtitle">同一个 AI 狼人杀观战产品，下面是三种方向的临时场景。你可以点选喜欢的，也可以告诉我想混合哪些元素。</p>
+
+<div class="style-grid">
+  <div class="style-card card" data-choice="a-room" onclick="toggleSelect(this)">
+    <div class="scene room">
+      <div class="scene-title">
+        <span>A 桌游房间感</span>
+        <span class="mini-pill">Space: 上帝视角</span>
+      </div>
+      <div class="round-table">
+        <div class="seat s1">01<small>林澈</small></div>
+        <div class="seat s2">02<small>夏眠</small></div>
+        <div class="seat s3">03<small>顾衡</small></div>
+        <div class="seat s4">04<small>叶岚</small></div>
+        <div class="seat s5">05<small>祁野</small></div>
+        <div class="seat s6">06<small>温序</small></div>
+      </div>
+      <div class="room-log">
+        <div class="room-line">第 1 天发言：林澈正在解释昨晚平安夜。</div>
+        <div class="room-line">当前焦点：02 与 05 互相质疑，预言家身份未公开。</div>
+        <div class="room-line">观众视角：身份隐藏，只显示状态与公开发言。</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. 桌游房间感</h3>
+      <p>最有代入感，适合“坐在电脑前看一桌 AI 玩狼人杀”。缺点是信息密度有限，复杂局势要靠额外面板补足。</p>
+    </div>
+  </div>
+
+  <div class="style-card card" data-choice="b-broadcast" onclick="toggleSelect(this)">
+    <div class="scene broadcast">
+      <div class="scene-title">
+        <span>B 赛事导播感</span>
+        <span class="mini-pill">Day 2 / 发言阶段</span>
+      </div>
+      <div class="stage">
+        <div>
+          <div class="speaker">04 叶岚 发言中</div>
+          <div class="quote">“如果 02 是狼，他昨晚的票型就太急了。我更怀疑 05 在顺势推人。”</div>
+        </div>
+        <div class="lower-third">
+          <span class="tag">怀疑对象：05</span>
+          <span class="tag">站边：03</span>
+          <span class="tag">情绪：冷静</span>
+        </div>
+      </div>
+      <div class="broadcast-body">
+        <div class="panel">
+          <h4>时间线</h4>
+          <div class="timeline-row"><span>N1</span><span>狼人袭击 06，女巫使用解药</span></div>
+          <div class="timeline-row"><span>D1</span><span>全员发言，03 起跳预言家</span></div>
+          <div class="timeline-row"><span>V1</span><span>05 被放逐，身份公开为村民</span></div>
+        </div>
+        <div class="panel">
+          <h4>玩家面板</h4>
+          <div class="player-chip"><span>01 林澈</span><strong>存活</strong></div>
+          <div class="player-chip"><span>02 夏眠</span><strong>高嫌疑</strong></div>
+          <div class="player-chip"><span>03 顾衡</span><strong>预言家?</strong></div>
+          <div class="player-chip"><span>04 叶岚</span><strong>发言中</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. 赛事导播感</h3>
+      <p>最适合观战：主舞台承载当前发言，侧边承载时间线和局势。既有节目效果，也不会牺牲太多可读性。</p>
+    </div>
+  </div>
+
+  <div class="style-card card" data-choice="c-debug" onclick="toggleSelect(this)">
+    <div class="scene debug">
+      <div class="scene-title">
+        <span>C 开发者调试感</span>
+        <span class="mini-pill">checkpoint: day_2_vote</span>
+      </div>
+      <div class="debug-grid">
+        <div class="debug-panel">
+          <h4>GAME STATE</h4>
+          <div class="code-line"><span class="json-key">phase</span>: <span class="json-string">"day_discussion"</span></div>
+          <div class="code-line"><span class="json-key">alive</span>: [01,02,03,04,06,07]</div>
+          <div class="code-line"><span class="json-key">view</span>: <span class="json-string">"audience"</span></div>
+          <div class="code-line"><span class="json-key">rollback</span>: <span class="json-warn">available</span></div>
+        </div>
+        <div class="debug-panel">
+          <h4>EVENT STREAM</h4>
+          <div class="code-line">#042 player_speech 04 "I suspect 05..."</div>
+          <div class="code-line">#043 suspicion_update 04 -> 05 +0.21</div>
+          <div class="code-line">#044 vote_start candidates=[02,05,07]</div>
+          <div class="code-line">#045 checkpoint saved day_2_vote</div>
+        </div>
+        <div class="debug-panel">
+          <h4>PRIVATE MEMORY</h4>
+          <div class="code-line">03 claims prophet, checked 02 as good.</div>
+          <div class="code-line">05 voting reason conflicts with D1 speech.</div>
+        </div>
+        <div class="debug-panel">
+          <h4>MODEL CALL</h4>
+          <div class="code-line">provider: anthropic</div>
+          <div class="code-line">model: claude-*</div>
+          <div class="code-line">action: generate_vote_reason</div>
+          <div class="code-line">tokens: prompt 4218 / completion 312</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. 开发者调试感</h3>
+      <p>最适合调规则、Prompt 和回溯系统。作为主 UI 会比较冷，但很适合做隐藏的调试面板或上帝视角高级信息。</p>
+    </div>
+  </div>
+</div>
