@@ -1,4 +1,4 @@
-import type { EventKind, GameEvent, GameState } from '../types';
+import type { EventKind, GameCheckpoint, GameEvent, GameState } from '../types';
 
 interface AppendEventInput {
   kind: EventKind;
@@ -15,6 +15,13 @@ function cloneStateForCheckpoint(state: GameState) {
     day: state.day,
     players: structuredClone(state.players),
     events: structuredClone(state.events),
+  };
+}
+
+function cloneCheckpoint(checkpoint: GameCheckpoint): GameCheckpoint {
+  return {
+    ...checkpoint,
+    state: structuredClone(checkpoint.state),
   };
 }
 
@@ -51,17 +58,21 @@ export function createCheckpoint(state: GameState, label: string): GameState {
 }
 
 export function rollbackToCheckpoint(state: GameState, checkpointId: string): GameState {
-  const checkpoint = state.checkpoints.find((item) => item.id === checkpointId);
-  if (!checkpoint) {
+  const checkpointIndex = state.checkpoints.findIndex((item) => item.id === checkpointId);
+  if (checkpointIndex === -1) {
     throw new Error(`Checkpoint not found: ${checkpointId}`);
   }
 
+  const checkpoint = state.checkpoints[checkpointIndex];
+
+  // GameStateSnapshot is the rollbackable gameplay state. Session/config state
+  // such as playerCount, viewMode, and rulesMarkdown intentionally stays current.
   return {
     ...state,
     phase: checkpoint.state.phase,
     day: checkpoint.state.day,
     players: structuredClone(checkpoint.state.players),
     events: structuredClone(checkpoint.state.events),
-    checkpoints: state.checkpoints.filter((item) => item.eventIndex <= checkpoint.eventIndex),
+    checkpoints: state.checkpoints.slice(0, checkpointIndex + 1).map(cloneCheckpoint),
   };
 }
