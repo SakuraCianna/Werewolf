@@ -3,6 +3,9 @@ dist/
 coverage/
 playwright-report/
 test-results/
+*.tsbuildinfo
+*.config.d.ts
+*.config.js
 .env
 .env.local
 .env.*.local
