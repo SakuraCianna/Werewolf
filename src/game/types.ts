@@ -10,6 +10,7 @@ export type GamePhase =
   | 'day-discussion'
   | 'vote'
   | 'exile-result'
+  | 'hunter-shot'
   | 'settlement';
 
 export type ViewMode = 'audience' | 'god';
@@ -26,6 +27,8 @@ export type EventKind =
   | 'exile'
   | 'phase'
   | 'system';
+
+export type WinnerCamp = 'werewolf' | 'good';
 
 export interface RoleConfig {
   playerCount: number;
@@ -75,6 +78,7 @@ export interface GameStateSnapshot {
   day: number;
   players: Player[];
   events: GameEvent[];
+  runtime: GameRuntime;
 }
 
 export interface GameState extends GameStateSnapshot {
@@ -82,4 +86,28 @@ export interface GameState extends GameStateSnapshot {
   viewMode: ViewMode;
   checkpoints: GameCheckpoint[];
   rulesMarkdown: string;
+}
+
+export interface NightRuntime {
+  victimId?: string;
+  seerId?: string;
+  seerTargetId?: string;
+  witchSaved: boolean;
+  poisonTargetId?: string;
+  guardTargetId?: string;
+}
+
+export interface GameRuntime {
+  step: 'night-start' | 'werewolf' | 'seer' | 'witch' | 'guard' | 'night-result' | 'discussion' | 'vote' | 'exile' | 'hunter' | 'settlement';
+  speakerQueue: string[];
+  votedThisDay: boolean;
+  witchSaveAvailable: boolean;
+  witchPoisonAvailable: boolean;
+  hunterShotPlayerIds: string[];
+  lastGuardTargetId?: string;
+  pendingHunterId?: string;
+  night: NightRuntime;
+  winner?: WinnerCamp;
+  winnerReason?: string;
+  llmEnabled: boolean;
 }

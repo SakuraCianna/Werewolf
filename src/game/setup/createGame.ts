@@ -65,16 +65,28 @@ export function createGame(input: CreateGameInput): GameState {
   return {
     playerCount: input.playerCount,
     viewMode: 'audience',
-    phase: 'setup',
+    phase: 'night',
     day: 1,
     players,
     checkpoints: [],
     rulesMarkdown: input.rulesMarkdown,
+    runtime: {
+      step: 'night-start',
+      speakerQueue: [],
+      votedThisDay: false,
+      witchSaveAvailable: true,
+      witchPoisonAvailable: true,
+      hunterShotPlayerIds: [],
+      night: {
+        witchSaved: false,
+      },
+      llmEnabled: true,
+    },
     events: [
       {
         id: 'event-start',
         kind: 'system',
-        phase: 'setup',
+        phase: 'night',
         day: 1,
         title: '游戏开始',
         content: `${input.playerCount} 人局已经创建。`,

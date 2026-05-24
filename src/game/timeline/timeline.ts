@@ -15,6 +15,7 @@ function cloneStateForCheckpoint(state: GameState) {
     day: state.day,
     players: structuredClone(state.players),
     events: structuredClone(state.events),
+    runtime: structuredClone(state.runtime),
   };
 }
 
@@ -73,6 +74,7 @@ export function rollbackToCheckpoint(state: GameState, checkpointId: string): Ga
     day: checkpoint.state.day,
     players: structuredClone(checkpoint.state.players),
     events: structuredClone(checkpoint.state.events),
+    runtime: structuredClone(checkpoint.state.runtime),
     checkpoints: state.checkpoints.slice(0, checkpointIndex + 1).map(cloneCheckpoint),
   };
 }

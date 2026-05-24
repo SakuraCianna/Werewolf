@@ -7,9 +7,22 @@ import { gsap, useGSAP } from '../../motion/gsapSetup';
 interface RoomViewProps {
   players: Player[];
   speakingPlayerId?: string;
+  day: number;
+  phaseText: string;
+  centerText: string;
+  revealRoles: boolean;
 }
 
-export function RoomView({ players, speakingPlayerId }: RoomViewProps) {
+const ROLE_LABELS: Record<Player['role'], string> = {
+  werewolf: '狼人',
+  villager: '村民',
+  seer: '预言家',
+  witch: '女巫',
+  hunter: '猎人',
+  guard: '守卫',
+};
+
+export function RoomView({ players, speakingPlayerId, day, phaseText, centerText, revealRoles }: RoomViewProps) {
   const rootRef = useRef<HTMLElement>(null);
   const step = 360 / Math.max(players.length, 1);
   const speakingPlayer = players.find((player) => player.id === speakingPlayerId);
@@ -39,8 +52,8 @@ export function RoomView({ players, speakingPlayerId }: RoomViewProps) {
       <div className="round-table" aria-hidden="true">
         <div className="table-center">
           <div>
-            <strong>第二天</strong>
-            <span>{speakingPlayer ? `${speakingPlayer.name}发言中` : '等待发言'}</span>
+            <strong>第{day}天</strong>
+            <span>{speakingPlayer ? `${speakingPlayer.name}发言中` : centerText}</span>
           </div>
         </div>
       </div>
@@ -57,10 +70,12 @@ export function RoomView({ players, speakingPlayerId }: RoomViewProps) {
         >
           <div className="seat-card">
             <div className="seat-name">{player.name}</div>
+            {revealRoles ? <div className={`seat-role ${player.camp}`}>{ROLE_LABELS[player.role]}</div> : null}
             <div className="seat-status">{player.status === 'alive' ? '存活' : '死亡'}</div>
           </div>
         </div>
       ))}
+      <div className="phase-ribbon">{phaseText}</div>
     </section>
   );
 }
