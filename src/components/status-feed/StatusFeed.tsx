@@ -10,7 +10,8 @@ interface StatusFeedProps {
 
 export function StatusFeed({ events, viewMode }: StatusFeedProps) {
   const listRef = useRef<HTMLDivElement>(null);
-  const visibleEvents = viewMode === 'god' ? events : events.filter((event) => event.visibility !== 'god');
+  const visibleEvents =
+    viewMode === 'god' ? events.filter((event) => event.visibility !== 'audience') : events.filter((event) => event.visibility !== 'god');
   const latestEvent = visibleEvents.at(-1);
 
   useGSAP(

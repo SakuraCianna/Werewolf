@@ -478,6 +478,12 @@ button:disabled {
   background: rgba(246, 233, 77, 0.1);
 }
 
+.message.inspect {
+  color: #52aaff;
+  border-color: rgba(82, 170, 255, 0.44);
+  background: rgba(82, 170, 255, 0.1);
+}
+
 .message.speech {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.18);

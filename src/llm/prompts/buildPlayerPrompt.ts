@@ -11,7 +11,7 @@ const PUBLIC_SPEECH_EVENT_KINDS = new Set<EventKind>([
 ]);
 
 export function getPublicSpeechEvents(events: GameEvent[]): GameEvent[] {
-  return events.filter((event) => event.visibility !== 'god' && PUBLIC_SPEECH_EVENT_KINDS.has(event.kind));
+  return events.filter((event) => event.visibility !== 'god' && event.visibility !== 'audience' && PUBLIC_SPEECH_EVENT_KINDS.has(event.kind));
 }
 
 export function buildPlayerSpeechPrompt(state: GameState, player: Player) {

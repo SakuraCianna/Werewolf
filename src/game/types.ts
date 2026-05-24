@@ -60,8 +60,8 @@ export interface GameEvent {
   content: string;
   playerId?: string;
   targetId?: string;
-  colorToken: 'speech' | 'kill' | 'revive' | 'protect' | 'neutral';
-  visibility?: 'public' | 'god';
+  colorToken: 'speech' | 'kill' | 'revive' | 'protect' | 'inspect' | 'neutral';
+  visibility?: 'public' | 'god' | 'audience';
   createdAt: number;
 }
 

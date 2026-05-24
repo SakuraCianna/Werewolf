@@ -138,7 +138,7 @@ export function App() {
         llmRef.current = createLlmClientFromEnv();
       } catch (error) {
         llmRef.current = undefined;
-        setNotice(`模型未就绪：${fallbackMessage(error)}。本局会使用本地规则兜底。`);
+        throw new Error(`模型未就绪：${fallbackMessage(error)}`);
       }
 
       const created = createGame({

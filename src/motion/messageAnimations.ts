@@ -7,6 +7,7 @@ const MESSAGE_GLOW_COLORS: Partial<Record<MessageColorToken, string>> = {
   kill: 'rgba(219, 52, 68, 0.5)',
   revive: 'rgba(69, 219, 52, 0.42)',
   protect: 'rgba(246, 233, 77, 0.42)',
+  inspect: 'rgba(82, 170, 255, 0.42)',
 };
 
 export function animateMessageIn(message: HTMLElement | null, colorToken: MessageColorToken): ReturnType<typeof gsap.timeline> | undefined {

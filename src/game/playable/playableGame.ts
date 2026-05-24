@@ -37,13 +37,12 @@ function isAlive(state: GameState, playerId: string) {
   return state.players.some((player) => player.id === playerId && player.status === 'alive');
 }
 
-function chooseFallbackTarget(state: GameState, candidates: Player[], salt = 0): string | undefined {
-  if (candidates.length === 0) {
-    return undefined;
+function randomDecisionNonce(): string {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
   }
 
-  const index = Math.abs(state.events.length * 7 + state.day * 11 + salt * 13) % candidates.length;
-  return candidates[index].id;
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function normalizeTargetId(value: unknown, candidates: Player[]): string | undefined {
@@ -96,7 +95,7 @@ function addEvent(
 function visibleTimeline(state: GameState, actor?: Player) {
   return state.events
     .filter((event) => {
-      if (event.visibility !== 'god') {
+      if (event.visibility !== 'god' && event.visibility !== 'audience') {
         return true;
       }
       if (!actor) {
@@ -125,10 +124,14 @@ async function askTarget(
   extra: string,
 ) {
   if (!llm || candidates.length === 0) {
-    return { targetId: chooseFallbackTarget(state, candidates), fallback: true };
+    if (candidates.length === 0) {
+      return { targetId: undefined };
+    }
+    throw new Error(`${actionName}需要可用的 LLM，但当前模型不可用。`);
   }
 
   try {
+    const decisionNonce = randomDecisionNonce();
     const response = await askJson(llm, {
       system: [
         '你正在进行一局狼人杀。',
@@ -142,23 +145,23 @@ async function askTarget(
         `你的私有记忆：${actor.privateMemory.join('\n') || '暂无'}`,
         `动作：${actionName}`,
         extra,
+        `本次行动扰动值：${decisionNonce}`,
         `可选目标：${candidates.map((player) => `${player.id}=${player.name}(${player.status})`).join('、')}`,
         `你当前可见事件：\n${visibleTimeline(state, actor) || '暂无'}`,
         '输出格式：{"targetId":"目标 id","reason":"一句简短理由"}',
       ].join('\n\n'),
       temperature: 0.45,
     });
+    const normalizedTargetId = normalizeTargetId(response.targetId, candidates);
+    if (!normalizedTargetId) {
+      throw new Error(`模型没有返回合法目标：${String(response.targetId ?? '空')}`);
+    }
     return {
-      targetId: normalizeTargetId(response.targetId, candidates) ?? chooseFallbackTarget(state, candidates, actor.id.length + actionName.length),
+      targetId: normalizedTargetId,
       reason: typeof response.reason === 'string' ? response.reason : undefined,
-      fallback: false,
     };
   } catch (error) {
-    return {
-      targetId: chooseFallbackTarget(state, candidates, actor.id.length + actionName.length),
-      fallback: true,
-      error: error instanceof Error ? error.message : String(error),
-    };
+    throw new Error(`${actionName}失败：${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -168,13 +171,14 @@ async function askBoolean(
   actor: Player,
   actionName: string,
   extra: string,
-  defaultValue: boolean,
+  _defaultValue: boolean,
 ) {
   if (!llm) {
-    return { yes: defaultValue, fallback: true };
+    throw new Error(`${actionName}需要可用的 LLM，但当前模型不可用。`);
   }
 
   try {
+    const decisionNonce = randomDecisionNonce();
     const response = await askJson(llm, {
       system: '你正在进行一局狼人杀。只输出 JSON 对象。',
       user: [
@@ -184,22 +188,21 @@ async function askBoolean(
         `你的私有记忆：${actor.privateMemory.join('\n') || '暂无'}`,
         `动作：${actionName}`,
         extra,
+        `本次行动扰动值：${decisionNonce}`,
         `你当前可见事件：\n${visibleTimeline(state, actor) || '暂无'}`,
         '输出格式：{"use":true,"reason":"一句简短理由"}',
       ].join('\n\n'),
       temperature: 0.35,
     });
+    if (typeof response.use !== 'boolean') {
+      throw new Error(`模型没有返回合法 use 布尔值：${String(response.use ?? '空')}`);
+    }
     return {
-      yes: typeof response.use === 'boolean' ? response.use : defaultValue,
+      yes: response.use,
       reason: typeof response.reason === 'string' ? response.reason : undefined,
-      fallback: false,
     };
   } catch (error) {
-    return {
-      yes: defaultValue,
-      fallback: true,
-      error: error instanceof Error ? error.message : String(error),
-    };
+    throw new Error(`${actionName}失败：${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -267,10 +270,18 @@ async function runWerewolf(state: GameState, llm?: LlmClient): Promise<GameState
     next = addEvent(next, {
       kind: 'kill',
       title: `${nightLabel(state.day)} · 狼人袭击`,
-      content: `狼人选择杀死${playerName(state, targetId)}。${decision.fallback ? '（本地规则兜底）' : ''}`,
+      content: `狼人选择杀死${playerName(state, targetId)}。`,
       colorToken: 'kill',
       visibility: 'god',
       playerId: actor.id,
+      targetId,
+    });
+    next = addEvent(next, {
+      kind: 'kill',
+      title: `${nightLabel(state.day)} · 狼人`,
+      content: `狼人选择杀死${playerName(state, targetId)}。`,
+      colorToken: 'kill',
+      visibility: 'audience',
       targetId,
     });
   }
@@ -297,9 +308,17 @@ async function runSeer(state: GameState, llm?: LlmClient): Promise<GameState> {
       kind: 'inspect',
       title: `${nightLabel(state.day)} · 预言家查验`,
       content: `${seer.name}查验了${playerName(state, targetId)}，结果为${result}。`,
-      colorToken: 'neutral',
+      colorToken: 'inspect',
       visibility: 'god',
       playerId: seer.id,
+      targetId,
+    });
+    next = addEvent(next, {
+      kind: 'inspect',
+      title: `${nightLabel(state.day)} · 预言家`,
+      content: `预言家查验了${playerName(state, targetId)}。`,
+      colorToken: 'inspect',
+      visibility: 'audience',
       targetId,
     });
   }
@@ -329,10 +348,18 @@ async function runWitch(state: GameState, llm?: LlmClient): Promise<GameState> {
       next = addEvent(next, {
         kind: 'revive',
         title: `${nightLabel(state.day)} · 女巫救人`,
-        content: `女巫使用解药，${playerName(state, victimId)}起死回生。${save.fallback ? '（本地规则兜底）' : ''}`,
+        content: `女巫使用解药，${playerName(state, victimId)}起死回生。`,
         colorToken: 'revive',
         visibility: 'god',
         playerId: witch.id,
+        targetId: victimId,
+      });
+      next = addEvent(next, {
+        kind: 'revive',
+        title: `${nightLabel(state.day)} · 女巫`,
+        content: `女巫使用解药，${playerName(state, victimId)}起死回生。`,
+        colorToken: 'revive',
+        visibility: 'audience',
         targetId: victimId,
       });
     }
@@ -355,10 +382,18 @@ async function runWitch(state: GameState, llm?: LlmClient): Promise<GameState> {
         next = addEvent(next, {
           kind: 'kill',
           title: `${nightLabel(state.day)} · 女巫毒药`,
-          content: `女巫使用毒药，${playerName(state, poison.targetId)}中毒死亡。${poison.fallback ? '（本地规则兜底）' : ''}`,
+          content: `女巫使用毒药，${playerName(state, poison.targetId)}中毒死亡。`,
           colorToken: 'kill',
           visibility: 'god',
           playerId: witch.id,
+          targetId: poison.targetId,
+        });
+        next = addEvent(next, {
+          kind: 'kill',
+          title: `${nightLabel(state.day)} · 女巫`,
+          content: `女巫使用毒药，${playerName(state, poison.targetId)}中毒死亡。`,
+          colorToken: 'kill',
+          visibility: 'audience',
           targetId: poison.targetId,
         });
       }
@@ -386,10 +421,18 @@ async function runGuard(state: GameState, llm?: LlmClient): Promise<GameState> {
     next = addEvent(next, {
       kind: 'protect',
       title: `${nightLabel(state.day)} · 守卫保护`,
-      content: `守卫保护了${playerName(state, decision.targetId)}。${decision.fallback ? '（本地规则兜底）' : ''}`,
+      content: `守卫保护了${playerName(state, decision.targetId)}。`,
       colorToken: 'protect',
       visibility: 'god',
       playerId: guard.id,
+      targetId: decision.targetId,
+    });
+    next = addEvent(next, {
+      kind: 'protect',
+      title: `${nightLabel(state.day)} · 守卫`,
+      content: `守卫保护了${playerName(state, decision.targetId)}。`,
+      colorToken: 'protect',
+      visibility: 'audience',
       targetId: decision.targetId,
     });
   }
@@ -503,26 +546,21 @@ async function runSpeech(state: GameState, llm?: LlmClient): Promise<GameState> 
     return withRuntime(state, { speakerQueue: rest });
   }
 
-  let speech = '';
-  let fallback = false;
-  if (llm) {
-    try {
-      const response = await llm.generate(buildPlayerSpeechPrompt(state, player));
-      speech = typeof response.speech === 'string' ? response.speech.trim() : '';
-    } catch {
-      fallback = true;
-    }
+  if (!llm) {
+    throw new Error(`${player.name}发言需要可用的 LLM，但当前模型不可用。`);
   }
+
+  const response = await llm.generate(buildPlayerSpeechPrompt(state, player));
+  const speech = typeof response.speech === 'string' ? response.speech.trim() : '';
   if (!speech) {
-    fallback = true;
-    speech = `我会先按目前的公开信息继续盘逻辑。${player.role === 'werewolf' ? '我觉得现在不能被单点节奏带走。' : '我更关注发言里前后矛盾的人。'}`;
+    throw new Error(`${player.name}发言失败：模型没有返回合法 speech。`);
   }
 
   const next = addEvent(withRuntime(state, { speakerQueue: rest }), {
     phase: 'day-discussion',
     kind: 'speech',
     title: `${dayLabel(state.day)} · ${player.name}发言`,
-    content: `${speech}${fallback ? '（本地发言兜底）' : ''}`,
+    content: speech,
     colorToken: 'speech',
     playerId,
   });
@@ -545,7 +583,7 @@ async function runVote(state: GameState, llm?: LlmClient): Promise<GameState> {
     next = addEvent(next, {
       kind: 'vote',
       title: `${dayLabel(state.day)} · ${voter.name}投票`,
-      content: `${voter.name}投给${playerName(state, decision.targetId)}。${decision.reason ? `理由：${decision.reason}` : ''}${decision.fallback ? '（本地规则兜底）' : ''}`,
+      content: `${voter.name}投给${playerName(state, decision.targetId)}。${decision.reason ? `理由：${decision.reason}` : ''}`,
       colorToken: 'neutral',
       playerId: voter.id,
       targetId: decision.targetId,
@@ -588,20 +626,6 @@ async function runVote(state: GameState, llm?: LlmClient): Promise<GameState> {
   return withRuntime({ ...next, phase: 'night', day: state.day + 1 }, { step: 'night-start', votedThisDay: true });
 }
 
-async function buildFallbackSettlement(state: GameState): Promise<SettlementReport> {
-  return normalizeSettlementReport({
-    summary: state.runtime.winnerReason ?? '本局已经结束。',
-    players: state.players.map((player) => ({
-      playerName: player.name,
-      performance: player.status === 'alive' ? 7 : 6,
-      logic: player.role === 'seer' ? 8 : 7,
-      operation: player.camp === state.runtime.winner ? 8 : 6,
-      comment: `${player.name}以${roleName(player.role)}身份完成了本局表现。`,
-      tags: [player.camp === state.runtime.winner ? '胜方成员' : '败方成员'],
-    })),
-  });
-}
-
 function roleName(role: Role) {
   return {
     werewolf: '狼人',
@@ -626,15 +650,11 @@ async function runSettlement(state: GameState, llm?: LlmClient): Promise<Advance
   }
 
   if (!llm) {
-    return { state: finalState, settlementReport: await buildFallbackSettlement(finalState), notice: '未配置模型，已使用本地赛后评分。' };
+    throw new Error('赛后评分需要可用的 LLM，但当前模型不可用。');
   }
 
-  try {
-    const report = normalizeSettlementReport(await llm.generate(buildJudgePrompt(finalState)));
-    return { state: finalState, settlementReport: report };
-  } catch {
-    return { state: finalState, settlementReport: await buildFallbackSettlement(finalState), notice: '赛后评分调用失败，已使用本地评分。' };
-  }
+  const report = normalizeSettlementReport(await llm.generate(buildJudgePrompt(finalState)));
+  return { state: finalState, settlementReport: report };
 }
 
 export async function advanceGame(state: GameState, llm?: LlmClient): Promise<AdvanceResult> {
