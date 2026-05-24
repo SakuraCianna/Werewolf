@@ -49,6 +49,8 @@ VITE_OPENAI_MODEL=deepseek-v4-flash
 VITE_OPENAI_API_STYLE=chat
 ```
 
+DeepSeek V4 的 OpenAI-compatible Base URL 仍是 `https://api.deepseek.com`。如果之后要走 DeepSeek 的 Anthropic-compatible 格式，再把 provider 改成 `anthropic`，并使用 `https://api.deepseek.com/anthropic`。
+
 注意：这是纯前端本地项目，`VITE_` 开头的环境变量会进入浏览器代码。只建议个人本地测试，不建议公开部署或把真实 Key 提交到仓库。
 
 ## 修改人物设定
