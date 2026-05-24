@@ -16,6 +16,9 @@ export async function runOneSpeech(
   if (!player) {
     throw new Error(`Player not found: ${playerId}`);
   }
+  if (player.status !== 'alive') {
+    throw new Error(`Player cannot speak while dead: ${playerId}`);
+  }
 
   const response = await llm.generate(buildPlayerSpeechPrompt(state, player));
   const speech = response.speech;
