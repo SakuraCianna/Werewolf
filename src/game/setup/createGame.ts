@@ -6,6 +6,7 @@ interface CreateGameInput {
   personas: Persona[];
   rulesMarkdown: string;
   seed: number;
+  createdAt?: number;
 }
 
 function campForRole(role: Role): Camp {
@@ -44,6 +45,9 @@ export function createGame(input: CreateGameInput): GameState {
 
   const selectedPersonas = shuffle(input.personas, input.seed).slice(0, input.playerCount);
   const roles = shuffle(expandRoles(input.playerCount), input.seed + 1);
+  if (roles.length !== input.playerCount) {
+    throw new Error(`Role config for ${input.playerCount} players produced ${roles.length} roles`);
+  }
 
   const players: Player[] = selectedPersonas.map((persona, index) => {
     const role = roles[index];
@@ -75,7 +79,7 @@ export function createGame(input: CreateGameInput): GameState {
         title: '游戏开始',
         content: `${input.playerCount} 人局已经创建。`,
         colorToken: 'neutral',
-        createdAt: Date.now(),
+        createdAt: input.createdAt ?? input.seed,
       },
     ],
   };
