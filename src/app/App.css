@@ -29,19 +29,40 @@ button:disabled {
 }
 
 .lobby-page {
+  position: relative;
+  isolation: isolate;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   display: grid;
   place-items: center;
   padding: 28px;
+  background: #12141c;
+}
+
+.lobby-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url("/背景图.png") center / cover no-repeat;
+  opacity: 0.38;
+}
+
+.lobby-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background:
-    radial-gradient(circle at 24% 18%, rgba(240, 217, 174, 0.15), transparent 28%),
-    radial-gradient(circle at 78% 68%, rgba(219, 52, 68, 0.09), transparent 26%),
-    linear-gradient(135deg, #171922 0%, #25283a 46%, #12141c 100%);
+    radial-gradient(circle at 24% 18%, rgba(240, 217, 174, 0.16), transparent 28%),
+    radial-gradient(circle at 78% 68%, rgba(219, 52, 68, 0.1), transparent 26%),
+    linear-gradient(135deg, rgba(18, 20, 28, 0.78) 0%, rgba(27, 29, 42, 0.62) 48%, rgba(18, 20, 28, 0.84) 100%);
 }
 
 .lobby-panel {
+  position: relative;
+  z-index: 1;
   width: min(920px, 100%);
   min-height: min(520px, calc(100vh - 56px));
   display: grid;
