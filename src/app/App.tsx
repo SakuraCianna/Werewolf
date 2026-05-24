@@ -68,7 +68,7 @@ function isEditableShortcutTarget(target: EventTarget | null) {
     return false;
   }
 
-  return Boolean(target.closest('button,input,textarea,[contenteditable="true"]'));
+  return Boolean(target.closest('button,input,textarea,[contenteditable]'));
 }
 
 export function App() {

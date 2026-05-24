@@ -268,13 +268,7 @@ button {
     grid-template-columns: minmax(0, 5fr) minmax(280px, 2fr);
   }
 
-  .round-table {
-    width: min(46vw, 52vh);
-  }
-
   .seat {
-    width: clamp(62px, 6vw, 78px);
-    height: clamp(62px, 6vw, 78px);
     transform:
       rotate(var(--angle))
       translate(calc(min(28vw, 31vh) * -1))
