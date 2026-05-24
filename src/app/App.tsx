@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { GameControls } from '../components/controls/GameControls';
 import { RoomView } from '../components/room/RoomView';
+import { SettlementView } from '../components/settlement/SettlementView';
 import { StatusFeed } from '../components/status-feed/StatusFeed';
-import type { GameEvent, Player, ViewMode } from '../game/types';
+import type { SettlementReport } from '../game/settlement/settlement';
+import type { GameEvent, GameState, Player, ViewMode } from '../game/types';
 
 const previewPlayers: Player[] = [
   { id: 'lin-che', name: '林澈', personaId: 'lin-che', role: 'villager', camp: 'good', status: 'alive', privateMemory: [] },
@@ -73,8 +75,16 @@ function isEditableShortcutTarget(target: EventTarget | null) {
 
 export function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('audience');
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [settlementReport, setSettlementReport] = useState<SettlementReport | null>(null);
   const toggleView = useCallback(() => {
     setViewMode((current) => (current === 'audience' ? 'god' : 'audience'));
+  }, []);
+
+  const resetToLobby = useCallback(() => {
+    setViewMode('audience');
+    setGameState(null);
+    setSettlementReport(null);
   }, []);
 
   useEffect(() => {
@@ -91,6 +101,13 @@ export function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [toggleView]);
 
+  if (settlementReport) {
+    return <SettlementView report={settlementReport} onReturnLobby={resetToLobby} />;
+  }
+
+  const activePlayers = gameState?.players ?? previewPlayers;
+  const activeEvents = gameState?.events ?? previewEvents;
+
   return (
     <main className="game-layout" data-view-mode={viewMode}>
       <section className="game-main">
@@ -101,9 +118,9 @@ export function App() {
           </div>
           <GameControls viewMode={viewMode} onToggleView={toggleView} />
         </header>
-        <RoomView players={previewPlayers} speakingPlayerId="ye-lan" />
+        <RoomView players={activePlayers} speakingPlayerId="ye-lan" />
       </section>
-      <StatusFeed events={previewEvents} />
+      <StatusFeed events={activeEvents} />
     </main>
   );
 }
