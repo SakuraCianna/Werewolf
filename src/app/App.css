@@ -146,6 +146,11 @@ button {
     translate(calc(min(25vw, 34vh) * -1))
     rotate(calc(var(--angle) * -1))
     translate(-50%, -50%);
+}
+
+.seat-card {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -160,12 +165,12 @@ button {
     inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
-.seat.speaking {
+.seat.speaking .seat-card {
   outline: 4px solid #ffffff;
   outline-offset: 5px;
 }
 
-.seat.dead {
+.seat.dead .seat-card {
   filter: grayscale(0.78);
   opacity: 0.62;
 }
