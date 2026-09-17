@@ -1,6 +1,17 @@
 import React from 'react';
-import type { GameState, Language, Camp } from 'voice-werewolf-shared';
-import { Mic, MicOff, Check, X, Shield, Skull, Eye, Wand2, Play } from 'lucide-react';
+import type { GameState, Language } from 'voice-werewolf-shared';
+import {
+  MicOff,
+  Check,
+  Skull,
+  Eye,
+  Wand2,
+  Play,
+  RotateCcw,
+  Sparkles,
+  ShieldAlert,
+} from 'lucide-react';
+import { sfx } from '../utils/soundEffects.js';
 
 interface ActionPanelProps {
   gameState: GameState | null;
@@ -25,16 +36,28 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 }) => {
   const isZh = language === 'zh-CN';
 
+  // 1. 待开局初始状态
   if (!gameState || gameState.phase === 'IDLE') {
     return (
-      <div className="flex justify-center my-6">
+      <div className="flex flex-col items-center my-4 gap-2">
         <button
-          onClick={onStartGame}
-          className="flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white font-bold text-base shadow-xl shadow-rose-950/60 transition-all transform hover:scale-105 active:scale-95"
+          onClick={() => {
+            sfx.playNightfall();
+            onStartGame();
+          }}
+          className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-600 via-rose-700 to-amber-700 hover:from-amber-500 hover:via-rose-600 hover:to-amber-600 text-white font-serif font-bold text-base shadow-gothic-gold transition-all transform hover:scale-105 active:scale-95 border border-amber-400/50"
         >
-          <Play className="w-5 h-5 fill-current" />
-          <span>{isZh ? '开启 6 人全语音狼人杀' : 'Start 6-Player Voice Werewolf'}</span>
+          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+          </div>
+          <span className="tracking-wider">
+            {isZh ? '开启 6 人全语音狼人杀' : 'Embark on Voice Werewolf'}
+          </span>
+          <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
         </button>
+        <p className="text-[11px] text-slate-400 font-serif">
+          {isZh ? '1位真人执言 · 5位AI博弈 · AssemblyAI 全程实时转写' : '1 Human Player · 5 Autonomous Agents · AssemblyAI Live Stream'}
+        </p>
       </div>
     );
   }
@@ -44,172 +67,203 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   const isHumanTurn = gameState.currentSpeakerId === 1;
   const phase = gameState.phase;
 
-  // 终局状态
+  // 2. 终局状态
   if (phase === 'GAME_OVER') {
     return (
-      <div className="flex flex-col items-center my-6 gap-3">
+      <div className="flex flex-col items-center my-4 gap-3">
         <button
-          onClick={onStartGame}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold border border-slate-700 shadow transition-all"
+          onClick={() => {
+            sfx.playDaybreak();
+            onStartGame();
+          }}
+          className="flex items-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-amber-300 font-serif font-bold border border-amber-500/30 shadow-xl transition-all hover:scale-105 active:scale-95"
         >
-          <Play className="w-4 h-4 fill-current" />
-          <span>{isZh ? '再来一局' : 'Play Again'}</span>
+          <RotateCcw className="w-4 h-4" />
+          <span>{isZh ? '再启新局 (Play Again)' : 'Begin New Game'}</span>
         </button>
       </div>
     );
   }
 
-  // 真人阵亡
+  // 3. 真人出局观战
   if (!isHumanAlive) {
     return (
-      <div className="flex items-center justify-center gap-2 my-6 p-4 rounded-xl bg-red-950/20 border border-red-900/40 text-red-400 text-xs">
-        <Skull className="w-4 h-4" />
-        <span>{isZh ? '你已出局，正在观战对弈……' : 'You are eliminated. Spectating...'}</span>
+      <div className="flex items-center justify-center gap-2.5 my-4 px-6 py-3 rounded-2xl bg-red-950/30 border border-red-900/50 text-red-300 text-xs font-serif shadow-lg backdrop-blur">
+        <Skull className="w-4 h-4 text-red-400 animate-pulse" />
+        <span>{isZh ? '灵魂游离：你已出局，正在以静默视角观摩战局……' : 'You have been eliminated. Spectating from beyond...'}</span>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto my-6 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col items-center gap-4">
-      {/* 1. 白天轮到真人发言 */}
+    <div className="w-full max-w-3xl mx-auto my-3 p-4 rounded-3xl bg-gradient-to-b from-slate-900/95 to-[#090e17]/95 border border-slate-800 shadow-2xl backdrop-blur flex flex-col items-center gap-3">
+      {/* 轮到真人发言 */}
       {isHumanTurn && (
         <div className="flex flex-col items-center gap-3 w-full">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm font-medium animate-pulse">
-            <Mic className="w-4 h-4" />
+          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono animate-pulse">
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
             <span>
               {isZh
-                ? '你的麦克风已连接 AssemblyAI，请开始发言……'
-                : 'Microphone linked with AssemblyAI. Please speak...'}
+                ? '麦克风已连接 AssemblyAI v3，尽情陈述你的逻辑……'
+                : 'Microphone streaming to AssemblyAI v3. State your deduction...'}
             </span>
           </div>
 
           <button
-            onClick={onEndSpeech}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold shadow-lg shadow-rose-900/50 transition-all active:scale-95"
+            onClick={() => {
+              sfx.playGavel();
+              onEndSpeech();
+            }}
+            className="flex items-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white font-serif font-bold text-sm shadow-gothic-blood transition-all active:scale-95 border border-rose-400/40"
           >
             <MicOff className="w-4 h-4" />
-            <span>{isZh ? '结束发言 (Pass)' : 'Finish Speech (Pass)'}</span>
+            <span>{isZh ? '完成发言 · 交麦 (Pass)' : 'End Speech · Pass the Turn'}</span>
           </button>
         </div>
       )}
 
-      {/* 2. 夜晚狼人密谋刀人 */}
+      {/* 夜晚狼人密谋刀人 */}
       {phase === 'NIGHT_WOLF' && human?.role === 'WEREWOLF' && (
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-xs text-rose-400 font-medium">
-            {isZh ? '请在圆桌上选择今晚击杀的目标：' : 'Select a target on table to eliminate:'}
+        <div className="flex flex-col items-center gap-2.5">
+          <p className="text-xs text-red-400 font-serif flex items-center gap-1.5 font-semibold">
+            <ShieldAlert className="w-4 h-4" />
+            {isZh ? '【暗夜狼嗥】请在圆桌上锁定今夜猎杀的目标：' : '[Werewolf Hunt] Select a victim from the round table:'}
           </p>
           <button
             disabled={!selectedTargetId}
-            onClick={() => selectedTargetId && onNightAction('KILL', selectedTargetId)}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+            onClick={() => {
+              if (selectedTargetId) {
+                sfx.playGavel();
+                onNightAction('KILL', selectedTargetId);
+              }
+            }}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-serif font-bold text-xs transition-all ${
               selectedTargetId
-                ? 'bg-red-700 hover:bg-red-600 text-white shadow-lg shadow-red-950/50'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white shadow-gothic-blood border border-red-500/40 cursor-pointer'
+                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Skull className="w-4 h-4" />
             <span>
               {selectedTargetId
                 ? isZh
-                  ? `袭击 ${selectedTargetId} 号玩家`
-                  : `Attack Player #${selectedTargetId}`
+                  ? `猎杀 ${selectedTargetId} 号玩家`
+                  : `Eliminate Player #${selectedTargetId}`
                 : isZh
-                  ? '请先点击选择圆桌玩家'
-                  : 'Select a player on table first'}
+                  ? '请点击上方圆桌选择目标'
+                  : 'Click a player card above'}
             </span>
           </button>
         </div>
       )}
 
-      {/* 3. 夜晚预言家验人 */}
+      {/* 夜晚预言家验人 */}
       {phase === 'NIGHT_SEER' && human?.role === 'SEER' && (
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-xs text-purple-400 font-medium">
-            {isZh ? '请选择一名玩家查验其阵营：' : 'Select a player to investigate camp:'}
+        <div className="flex flex-col items-center gap-2.5">
+          <p className="text-xs text-purple-300 font-serif flex items-center gap-1.5 font-semibold">
+            <Eye className="w-4 h-4 text-purple-400" />
+            {isZh ? '【圣眼凝视】请选择一名玩家窥视其阵营光芒：' : '[Seer Divination] Select a player to reveal their true camp:'}
           </p>
           <button
             disabled={!selectedTargetId}
-            onClick={() => selectedTargetId && onNightAction('CHECK', selectedTargetId)}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+            onClick={() => {
+              if (selectedTargetId) {
+                sfx.playMicChime();
+                onNightAction('CHECK', selectedTargetId);
+              }
+            }}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-serif font-bold text-xs transition-all ${
               selectedTargetId
-                ? 'bg-purple-700 hover:bg-purple-600 text-white shadow-lg shadow-purple-950/50'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-600 hover:to-indigo-700 text-white shadow-xl border border-purple-400/40 cursor-pointer'
+                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Eye className="w-4 h-4" />
             <span>
               {selectedTargetId
                 ? isZh
-                  ? `查验 ${selectedTargetId} 号玩家`
-                  : `Investigate Player #${selectedTargetId}`
+                  ? `查验 ${selectedTargetId} 号真实阵营`
+                  : `Inspect Player #${selectedTargetId}`
                 : isZh
-                  ? '请先点击选择目标'
-                  : 'Select target first'}
+                  ? '请点击上方圆桌选择目标'
+                  : 'Click a player card above'}
             </span>
           </button>
         </div>
       )}
 
-      {/* 4. 夜晚女巫用药 */}
+      {/* 夜晚女巫用药 */}
       {phase === 'NIGHT_WITCH' && human?.role === 'WITCH' && (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-xs text-emerald-400 font-medium">
-            {isZh ? '【女巫之夜】请选择是否使用解药或毒药：' : '[Witch Night] Choose potion to use:'}
+        <div className="flex flex-col items-center gap-2.5">
+          <p className="text-xs text-emerald-300 font-serif flex items-center gap-1.5 font-semibold">
+            <Wand2 className="w-4 h-4 text-emerald-400" />
+            {isZh ? '【秘药秘仪】女巫之夜，是否调配解药或毒药？' : '[Witch Alchemy] Brew potion to save or poison:'}
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {gameState.witchInventory.hasAntidote && (
               <button
-                onClick={() => onNightAction('SAVE')}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold shadow"
+                onClick={() => {
+                  sfx.playMicChime();
+                  onNightAction('SAVE');
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-serif font-semibold border border-emerald-400/40 shadow-lg cursor-pointer"
               >
-                <Shield className="w-4 h-4" />
-                <span>{isZh ? '使用解药救人' : 'Use Antidote (Save)'}</span>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{isZh ? '使用解药救活遇害者' : 'Cast Healing Elixir'}</span>
               </button>
             )}
             {gameState.witchInventory.hasPoison && selectedTargetId && (
               <button
-                onClick={() => onNightAction('POISON', selectedTargetId)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-semibold shadow"
+                onClick={() => {
+                  sfx.playGavel();
+                  onNightAction('POISON', selectedTargetId);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-800 to-red-900 hover:from-purple-700 hover:to-red-800 text-white text-xs font-serif font-semibold border border-purple-400/40 shadow-lg cursor-pointer"
               >
-                <Wand2 className="w-4 h-4" />
-                <span>{isZh ? `毒死 ${selectedTargetId} 号` : `Poison #${selectedTargetId}`}</span>
+                <Skull className="w-3.5 h-3.5" />
+                <span>{isZh ? `赐毒 ${selectedTargetId} 号` : `Poison #${selectedTargetId}`}</span>
               </button>
             )}
             <button
               onClick={() => onNightAction('PASS')}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700"
+              className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-serif border border-slate-700 cursor-pointer"
             >
-              {isZh ? '不使用药剂' : 'Pass / No Potion'}
+              {isZh ? '保留药剂 · 过' : 'Reserve Potions · Pass'}
             </button>
           </div>
         </div>
       )}
 
-      {/* 5. 白天放逐公投 */}
+      {/* 白天放逐公投 */}
       {phase === 'DAY_VOTE' && (
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-xs text-amber-400 font-medium">
-            {isZh ? '【放逐公投】请点击圆桌玩家进行投票：' : '[Exile Vote] Cast your vote on a player:'}
+        <div className="flex flex-col items-center gap-2.5">
+          <p className="text-xs text-amber-300 font-serif flex items-center gap-1.5 font-semibold">
+            <Check className="w-4 h-4 text-amber-400" />
+            {isZh ? '【议会公投】选定一名最具嫌疑的玩家，投出你的放逐票：' : '[Council Vote] Choose the primary suspect to cast your exile vote:'}
           </p>
           <button
             disabled={!selectedTargetId}
-            onClick={() => selectedTargetId && onVote(selectedTargetId)}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+            onClick={() => {
+              if (selectedTargetId) {
+                sfx.playGavel();
+                onVote(selectedTargetId);
+              }
+            }}
+            className={`flex items-center gap-2 px-7 py-2.5 rounded-xl font-serif font-bold text-xs transition-all ${
               selectedTargetId
-                ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-950/50'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600 text-white shadow-gothic-gold border border-amber-400/50 cursor-pointer'
+                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Check className="w-4 h-4" />
             <span>
               {selectedTargetId
                 ? isZh
-                  ? `投票放逐 ${selectedTargetId} 号玩家`
-                  : `Vote to Exile Player #${selectedTargetId}`
+                  ? `放逐投票 → ${selectedTargetId} 号玩家`
+                  : `Cast Exile Vote → Player #${selectedTargetId}`
                 : isZh
-                  ? '请点击圆桌选择被投玩家'
-                  : 'Select a player to vote for'}
+                  ? '请点击上方圆桌选择被投玩家'
+                  : 'Click a player card above'}
             </span>
           </button>
         </div>
