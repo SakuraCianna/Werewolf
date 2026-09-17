@@ -39,24 +39,24 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   // 1. 待开局初始状态
   if (!gameState || gameState.phase === 'IDLE') {
     return (
-      <div className="flex flex-col items-center my-4 gap-2">
+      <div className="flex flex-col items-center my-1.5 gap-1 shrink-0">
         <button
           onClick={() => {
             sfx.playNightfall();
             onStartGame();
           }}
-          className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-600 via-rose-700 to-amber-700 hover:from-amber-500 hover:via-rose-600 hover:to-amber-600 text-white font-serif font-bold text-base shadow-gothic-gold transition-all transform hover:scale-105 active:scale-95 border border-amber-400/50"
+          className="group relative flex items-center gap-2.5 px-6 sm:px-8 py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-amber-600 via-rose-700 to-amber-700 hover:from-amber-500 hover:via-rose-600 hover:to-amber-600 text-white font-sans font-bold text-sm sm:text-base shadow-gothic-gold transition-all transform hover:scale-105 active:scale-95 border border-amber-400/50 cursor-pointer"
         >
-          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+          <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+            <Play className="w-3 h-3 fill-current ml-0.5" />
           </div>
-          <span className="tracking-wider">
+          <span className="tracking-wider font-sans">
             {isZh ? '开启 6 人全语音狼人杀' : 'Embark on Voice Werewolf'}
           </span>
-          <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
+          <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
         </button>
-        <p className="text-[11px] text-slate-400 font-serif">
-          {isZh ? '1位真人执言 · 5位AI博弈 · AssemblyAI 全程实时转写' : '1 Human Player · 5 Autonomous Agents · AssemblyAI Live Stream'}
+        <p className="text-[10px] text-slate-400 font-sans">
+          {isZh ? '1位真人执言 · 5位AI博弈 · 原生多角色语音同传' : '1 Human Player · 5 Autonomous Agents · Multi-Voice Stream'}
         </p>
       </div>
     );
@@ -70,16 +70,16 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   // 2. 终局状态
   if (phase === 'GAME_OVER') {
     return (
-      <div className="flex flex-col items-center my-4 gap-3">
+      <div className="flex flex-col items-center my-1.5 gap-2 shrink-0">
         <button
           onClick={() => {
             sfx.playDaybreak();
             onStartGame();
           }}
-          className="flex items-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-amber-300 font-serif font-bold border border-amber-500/30 shadow-xl transition-all hover:scale-105 active:scale-95"
+          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-amber-300 font-sans font-bold text-xs border border-amber-500/30 shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
         >
-          <RotateCcw className="w-4 h-4" />
-          <span>{isZh ? '再启新局 (Play Again)' : 'Begin New Game'}</span>
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span className="font-sans">{isZh ? '再启新局 (Play Again)' : 'Begin New Game'}</span>
         </button>
       </div>
     );
@@ -88,20 +88,20 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   // 3. 真人出局观战
   if (!isHumanAlive) {
     return (
-      <div className="flex items-center justify-center gap-2.5 my-4 px-6 py-3 rounded-2xl bg-red-950/30 border border-red-900/50 text-red-300 text-xs font-serif shadow-lg backdrop-blur">
-        <Skull className="w-4 h-4 text-red-400 animate-pulse" />
-        <span>{isZh ? '灵魂游离：你已出局，正在以静默视角观摩战局……' : 'You have been eliminated. Spectating from beyond...'}</span>
+      <div className="flex items-center justify-center gap-2 my-1 px-4 py-1.5 rounded-xl bg-red-950/30 border border-red-900/50 text-red-300 text-[11px] font-sans shadow backdrop-blur shrink-0">
+        <Skull className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+        <span className="font-sans">{isZh ? '灵魂游离：你已出局，正在以静默视角观摩战局……' : 'You have been eliminated. Spectating from beyond...'}</span>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto my-3 p-4 rounded-3xl bg-gradient-to-b from-slate-900/95 to-[#090e17]/95 border border-slate-800 shadow-2xl backdrop-blur flex flex-col items-center gap-3">
+    <div className="w-full max-w-3xl mx-auto my-1 p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-900/95 to-[#090e17]/95 border border-slate-800 shadow-xl backdrop-blur flex flex-col items-center gap-2 shrink-0">
       {/* 轮到真人发言 */}
       {isHumanTurn && (
-        <div className="flex flex-col items-center gap-3 w-full">
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+        <div className="flex flex-col items-center gap-2 w-full">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-mono animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
             <span>
               {isZh
                 ? '麦克风已连接 AssemblyAI v3，尽情陈述你的逻辑……'
@@ -114,18 +114,18 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
               sfx.playGavel();
               onEndSpeech();
             }}
-            className="flex items-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white font-serif font-bold text-sm shadow-gothic-blood transition-all active:scale-95 border border-rose-400/40"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white font-sans font-bold text-xs sm:text-sm shadow-gothic-blood transition-all active:scale-95 border border-rose-400/40 cursor-pointer"
           >
-            <MicOff className="w-4 h-4" />
-            <span>{isZh ? '完成发言 · 交麦 (Pass)' : 'End Speech · Pass the Turn'}</span>
+            <MicOff className="w-3.5 h-3.5" />
+            <span className="font-sans">{isZh ? '完成发言 · 交麦 (Pass)' : 'End Speech · Pass the Turn'}</span>
           </button>
         </div>
       )}
 
       {/* 夜晚狼人密谋刀人 */}
       {phase === 'NIGHT_WOLF' && human?.role === 'WEREWOLF' && (
-        <div className="flex flex-col items-center gap-2.5">
-          <p className="text-xs text-red-400 font-serif flex items-center gap-1.5 font-semibold">
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-xs text-red-400 font-sans flex items-center gap-1.5 font-semibold">
             <ShieldAlert className="w-4 h-4" />
             {isZh ? '【暗夜狼嗥】请在圆桌上锁定今夜猎杀的目标：' : '[Werewolf Hunt] Select a victim from the round table:'}
           </p>
@@ -137,14 +137,14 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                 onNightAction('KILL', selectedTargetId);
               }
             }}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-serif font-bold text-xs transition-all ${
+            className={`flex items-center gap-2 px-5 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
               selectedTargetId
-                ? 'bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white shadow-gothic-blood border border-red-500/40 cursor-pointer'
+                ? 'bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white shadow-gothic-blood border border-red-500/40 cursor-pointer active:scale-95'
                 : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Skull className="w-4 h-4" />
-            <span>
+            <span className="font-sans">
               {selectedTargetId
                 ? isZh
                   ? `猎杀 ${selectedTargetId} 号玩家`
@@ -159,8 +159,8 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
       {/* 夜晚预言家验人 */}
       {phase === 'NIGHT_SEER' && human?.role === 'SEER' && (
-        <div className="flex flex-col items-center gap-2.5">
-          <p className="text-xs text-purple-300 font-serif flex items-center gap-1.5 font-semibold">
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-xs text-purple-300 font-sans flex items-center gap-1.5 font-semibold">
             <Eye className="w-4 h-4 text-purple-400" />
             {isZh ? '【圣眼凝视】请选择一名玩家窥视其阵营光芒：' : '[Seer Divination] Select a player to reveal their true camp:'}
           </p>
@@ -172,14 +172,14 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                 onNightAction('CHECK', selectedTargetId);
               }
             }}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-serif font-bold text-xs transition-all ${
+            className={`flex items-center gap-2 px-5 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
               selectedTargetId
-                ? 'bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-600 hover:to-indigo-700 text-white shadow-xl border border-purple-400/40 cursor-pointer'
+                ? 'bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-600 hover:to-indigo-700 text-white shadow-xl border border-purple-400/40 cursor-pointer active:scale-95'
                 : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Eye className="w-4 h-4" />
-            <span>
+            <span className="font-sans">
               {selectedTargetId
                 ? isZh
                   ? `查验 ${selectedTargetId} 号真实阵营`
@@ -194,22 +194,22 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
       {/* 夜晚女巫用药 */}
       {phase === 'NIGHT_WITCH' && human?.role === 'WITCH' && (
-        <div className="flex flex-col items-center gap-2.5">
-          <p className="text-xs text-emerald-300 font-serif flex items-center gap-1.5 font-semibold">
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-xs text-emerald-300 font-sans flex items-center gap-1.5 font-semibold">
             <Wand2 className="w-4 h-4 text-emerald-400" />
-            {isZh ? '【秘药秘仪】女巫之夜，是否调配解药或毒药？' : '[Witch Alchemy] Brew potion to save or poison:'}
+            {isZh ? '【秘药秘仪】女巫之夜，调配解药或毒药：' : '[Witch Alchemy] Brew potion to save or poison:'}
           </p>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {gameState.witchInventory.hasAntidote && (
               <button
                 onClick={() => {
                   sfx.playMicChime();
                   onNightAction('SAVE');
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-serif font-semibold border border-emerald-400/40 shadow-lg cursor-pointer"
+                className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-sans font-semibold border border-emerald-400/40 shadow-md cursor-pointer active:scale-95"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>{isZh ? '使用解药救活遇害者' : 'Cast Healing Elixir'}</span>
+                <span className="font-sans">{isZh ? '使用解药' : 'Cast Healing'}</span>
               </button>
             )}
             {gameState.witchInventory.hasPoison && selectedTargetId && (
@@ -218,17 +218,17 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                   sfx.playGavel();
                   onNightAction('POISON', selectedTargetId);
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-800 to-red-900 hover:from-purple-700 hover:to-red-800 text-white text-xs font-serif font-semibold border border-purple-400/40 shadow-lg cursor-pointer"
+                className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-800 to-red-900 hover:from-purple-700 hover:to-red-800 text-white text-xs font-sans font-semibold border border-purple-400/40 shadow-md cursor-pointer active:scale-95"
               >
                 <Skull className="w-3.5 h-3.5" />
-                <span>{isZh ? `赐毒 ${selectedTargetId} 号` : `Poison #${selectedTargetId}`}</span>
+                <span className="font-sans">{isZh ? `赐毒 ${selectedTargetId} 号` : `Poison #${selectedTargetId}`}</span>
               </button>
             )}
             <button
               onClick={() => onNightAction('PASS')}
-              className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-serif border border-slate-700 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-sans border border-slate-700 cursor-pointer active:scale-95"
             >
-              {isZh ? '保留药剂 · 过' : 'Reserve Potions · Pass'}
+              <span className="font-sans">{isZh ? '保留药剂 · 过' : 'Reserve · Pass'}</span>
             </button>
           </div>
         </div>
@@ -236,10 +236,10 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
       {/* 白天放逐公投 */}
       {phase === 'DAY_VOTE' && (
-        <div className="flex flex-col items-center gap-2.5">
-          <p className="text-xs text-amber-300 font-serif flex items-center gap-1.5 font-semibold">
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-xs text-amber-300 font-sans flex items-center gap-1.5 font-semibold">
             <Check className="w-4 h-4 text-amber-400" />
-            {isZh ? '【议会公投】选定一名最具嫌疑的玩家，投出你的放逐票：' : '[Council Vote] Choose the primary suspect to cast your exile vote:'}
+            {isZh ? '【议会公投】选定一名最具嫌疑的玩家，投出放逐票：' : '[Council Vote] Choose a suspect to cast your exile vote:'}
           </p>
           <button
             disabled={!selectedTargetId}
@@ -249,14 +249,14 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                 onVote(selectedTargetId);
               }
             }}
-            className={`flex items-center gap-2 px-7 py-2.5 rounded-xl font-serif font-bold text-xs transition-all ${
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
               selectedTargetId
-                ? 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600 text-white shadow-gothic-gold border border-amber-400/50 cursor-pointer'
+                ? 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600 text-white shadow-gothic-gold border border-amber-400/50 cursor-pointer active:scale-95'
                 : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Check className="w-4 h-4" />
-            <span>
+            <span className="font-sans">
               {selectedTargetId
                 ? isZh
                   ? `放逐投票 → ${selectedTargetId} 号玩家`

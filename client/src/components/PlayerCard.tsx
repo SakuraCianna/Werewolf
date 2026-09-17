@@ -127,21 +127,21 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   return (
     <div
       onClick={player.isAlive && onSelect ? onSelect : undefined}
-      className={`group relative flex flex-col items-center w-full p-3.5 rounded-2xl transition-all duration-300 select-none ${
+      className={`group relative flex flex-col items-center w-full p-2 sm:p-2.5 md:p-3 rounded-2xl transition-all duration-300 select-none ${
         onSelect && player.isAlive
-          ? 'cursor-pointer hover:-translate-y-1 hover:shadow-2xl'
+          ? 'cursor-pointer hover:-translate-y-1 hover:shadow-xl'
           : ''
       } ${
         isSelected
-          ? 'ring-2 ring-amber-400 bg-amber-950/30 shadow-gothic-gold scale-[1.02]'
+          ? 'ring-2 ring-amber-400 bg-amber-950/40 shadow-gothic-gold scale-[1.02]'
           : isCurrentSpeaker
             ? 'ring-2 ring-rose-500 shadow-gothic-blood bg-slate-900/95'
             : 'bg-gradient-to-b ' + theme.bg + ' border ' + theme.border + ' shadow-gothic-card'
       } ${!player.isAlive ? 'opacity-35 grayscale contrast-125' : ''}`}
     >
       {/* 席位编号金币印鉴 */}
-      <div className="absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800 p-0.5 shadow-md flex items-center justify-center z-10">
-        <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center font-serif text-xs font-bold text-amber-300">
+      <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800 p-0.5 shadow-md flex items-center justify-center z-10">
+        <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center font-sans text-xs font-bold text-amber-300">
           {player.id}
         </div>
       </div>
@@ -152,23 +152,23 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
       )}
 
       {/* 角色纹章徽印与头像 */}
-      <div className="relative my-1">
+      <div className="relative my-0.5">
         {/* 说话者外层神圣旋转光晕 (仅底环旋转，中心图标稳固) */}
         {isCurrentSpeaker && player.isAlive && (
-          <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-400 to-rose-600 animate-spin-slow opacity-80 blur-[2px]" />
+          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-400 to-rose-600 animate-spin-slow opacity-80 blur-[2px]" />
         )}
 
         <div
-          className={`relative w-16 h-16 rounded-2xl p-0.5 bg-gradient-to-br ${
+          className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl p-0.5 bg-gradient-to-br ${
             isCurrentSpeaker
               ? 'from-amber-400 via-rose-500 to-amber-600'
               : 'from-slate-700/80 via-slate-800 to-slate-900'
           } shadow-lg transition-transform duration-200 group-hover:scale-105`}
         >
           <div className="w-full h-full rounded-[14px] bg-slate-950/95 flex flex-col items-center justify-center overflow-hidden relative">
-            <CrestIcon className={`w-8 h-8 ${theme.accent} transition-transform duration-200 group-hover:scale-110`} />
+            <CrestIcon className={`w-6 h-6 sm:w-7 sm:h-7 ${theme.accent} transition-transform duration-200 group-hover:scale-110`} />
             {!player.isAI && (
-              <span className="absolute bottom-1 text-[8px] font-bold tracking-widest text-amber-400 font-mono px-1 py-0.2 rounded bg-amber-950/60 border border-amber-500/30">
+              <span className="absolute bottom-0.5 text-[7px] font-bold tracking-widest text-amber-400 font-mono px-1 py-0.2 rounded bg-amber-950/60 border border-amber-500/30">
                 YOU
               </span>
             )}
@@ -177,27 +177,27 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 
         {/* 说话波形动态频谱条 */}
         {isCurrentSpeaker && player.isAlive && (
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-gradient-to-r from-rose-600 to-amber-600 px-2 py-0.5 rounded-full shadow-lg border border-white/20 z-20">
-            <span className="w-1 h-3 bg-white rounded-full animate-wave-bar"></span>
-            <span className="w-1 h-5 bg-white rounded-full animate-wave-bar [animation-delay:0.15s]"></span>
-            <span className="w-1 h-2 bg-white rounded-full animate-wave-bar [animation-delay:0.3s]"></span>
-            <span className="w-1 h-4 bg-white rounded-full animate-wave-bar [animation-delay:0.45s]"></span>
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-gradient-to-r from-rose-600 to-amber-600 px-1.5 py-0.5 rounded-full shadow-lg border border-white/20 z-20">
+            <span className="w-0.5 h-2.5 bg-white rounded-full animate-wave-bar"></span>
+            <span className="w-0.5 h-4 bg-white rounded-full animate-wave-bar [animation-delay:0.15s]"></span>
+            <span className="w-0.5 h-2 bg-white rounded-full animate-wave-bar [animation-delay:0.3s]"></span>
+            <span className="w-0.5 h-3.5 bg-white rounded-full animate-wave-bar [animation-delay:0.45s]"></span>
           </div>
         )}
 
         {/* 阵亡破裂覆面 */}
         {!player.isAlive && (
           <div className="absolute inset-0 bg-black/85 rounded-2xl flex flex-col items-center justify-center backdrop-blur-[1px] border border-red-900/60 z-20">
-            <Skull className="w-8 h-8 text-red-500 drop-shadow-md animate-pulse" />
-            <span className="text-[9px] font-bold text-red-400 mt-0.5 font-mono tracking-widest">OUT</span>
+            <Skull className="w-6 h-6 text-red-500 drop-shadow-md animate-pulse" />
+            <span className="text-[8px] font-bold text-red-400 mt-0.5 font-mono tracking-widest">OUT</span>
           </div>
         )}
       </div>
 
       {/* 玩家名称与名册 */}
-      <div className="text-center mt-2 w-full">
+      <div className="text-center mt-1 w-full">
         <div className="flex items-center justify-center gap-1">
-          <span className="text-xs font-bold text-slate-100 tracking-wide truncate max-w-[95px]">
+          <span className="text-xs font-bold text-slate-100 tracking-wide truncate max-w-[95px] font-sans">
             {player.name}
           </span>
         </div>
@@ -205,20 +205,20 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         {/* 身份铭牌 */}
         {showRole ? (
           <div
-            className={`mt-1 text-[10px] px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 shadow-sm ${getRoleBadge().style}`}
+            className={`mt-0.5 text-[9px] px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-0.5 shadow-sm font-sans ${getRoleBadge().style}`}
           >
-            <Sparkles className="w-2.5 h-2.5" />
+            <Sparkles className="w-2 h-2" />
             <span>{getRoleBadge().name}</span>
           </div>
         ) : (
-          <div className="mt-1 text-[10px] px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-800 text-slate-400 font-medium inline-block">
+          <div className="mt-0.5 text-[9px] px-1.5 py-0.5 rounded-md bg-slate-900/80 border border-slate-800 text-slate-400 font-medium inline-block font-sans">
             {theme.title}
           </div>
         )}
 
         {/* AI 个性特征摘要 */}
         {player.isAI && player.persona && (
-          <div className="mt-1 text-[9px] text-slate-400 leading-tight truncate max-w-[110px] mx-auto opacity-75 group-hover:opacity-100 transition-opacity">
+          <div className="mt-0.5 text-[8px] text-slate-400 leading-tight truncate max-w-[105px] mx-auto opacity-75 group-hover:opacity-100 transition-opacity font-sans">
             {isZh ? player.persona.toneStyleZh : player.persona.toneStyleEn}
           </div>
         )}
