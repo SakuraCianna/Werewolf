@@ -1,0 +1,25 @@
+{
+  "name": "voice-werewolf-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bestcodes/edge-tts": "^3.0.1",
+    "dotenv": "^16.4.7",
+    "openai": "^4.86.0",
+    "voice-werewolf-shared": "*",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "@types/ws": "^8.5.14",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.8"
+  }
+}
