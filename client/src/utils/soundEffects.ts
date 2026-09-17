@@ -22,8 +22,15 @@ class SoundEffectsEngine {
     return this.ctx;
   }
 
+  private onMuteChange?: (muted: boolean) => void;
+
   public setMuted(muted: boolean) {
     this.isMuted = muted;
+    this.onMuteChange?.(muted);
+  }
+
+  public onMuted(cb: (muted: boolean) => void) {
+    this.onMuteChange = cb;
   }
 
   public getMuted(): boolean {

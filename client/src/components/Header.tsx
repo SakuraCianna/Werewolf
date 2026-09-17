@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Language, GamePhase } from 'voice-werewolf-shared';
-import { Moon, Sun, Shield, Sparkles, Volume2 } from 'lucide-react';
+import { Moon, Sun, Shield, Sparkles, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 
 interface HeaderProps {
   language: Language;
@@ -9,6 +9,9 @@ interface HeaderProps {
   phase: GamePhase;
   round: number;
   isConnected?: boolean;
+  onRestart?: () => void;
+  muted?: boolean;
+  onToggleMute?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,6 +21,9 @@ export const Header: React.FC<HeaderProps> = ({
   phase,
   round,
   isConnected = true,
+  onRestart,
+  muted = false,
+  onToggleMute,
 }) => {
   const isZh = language === 'zh-CN';
   const isNight = phase.startsWith('NIGHT');
@@ -37,27 +43,27 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="w-full flex items-center justify-between px-4 sm:px-8 py-3.5 border-b border-amber-500/20 bg-[#070b12]/85 backdrop-blur-md sticky top-0 z-40 shadow-2xl">
+    <header className="w-full h-14 shrink-0 flex items-center justify-between px-4 sm:px-6 border-b border-amber-500/20 bg-[#070b12]/90 backdrop-blur-md sticky top-0 z-40 shadow-xl">
       {/* 品牌标识与技术标牌 */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-rose-800 to-slate-950 p-0.5 shadow-lg shadow-rose-950/40 border border-amber-400/40 flex items-center justify-center">
-          <div className="w-full h-full rounded-[10px] bg-slate-950/80 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-amber-400 drop-shadow" />
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-rose-800 to-slate-950 p-0.5 shadow-md border border-amber-400/40 flex items-center justify-center">
+          <div className="w-full h-full rounded-[9px] bg-slate-950/80 flex items-center justify-center">
+            <Shield className="w-4 h-4 text-amber-400 drop-shadow" />
           </div>
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-bold tracking-wider text-slate-100 font-serif">
+            <h1 className="text-base sm:text-lg font-bold tracking-wider text-slate-100 font-sans">
               VOICE WEREWOLF
             </h1>
-            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
+            <span className="hidden md:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
               <Sparkles className="w-2.5 h-2.5 text-rose-400" /> AssemblyAI v3
             </span>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 text-[10px] text-slate-400 leading-tight">
             <span>{isZh ? '全语音 AI 狼人杀桌游' : 'Voice Agent Tabletop'}</span>
             <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-            <span className="flex items-center gap-1 text-[10px] font-mono">
+            <span className="flex items-center gap-1 font-mono">
               <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`}></span>
               {isConnected ? (isZh ? '实时在线' : 'Live') : (isZh ? '断线重连' : 'Offline')}
             </span>
@@ -65,32 +71,53 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 昼夜对局相位徽章与语言锁 */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      {/* 状态徽章、重新开始按钮、声音开关与语言锁 */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
         {/* 当前对局状态标签 */}
         <div
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-serif font-medium transition-all shadow-md ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all shadow-sm ${
             isNight
               ? 'bg-indigo-950/60 border-indigo-500/40 text-indigo-300 shadow-indigo-950/40'
               : 'bg-amber-950/50 border-amber-500/40 text-amber-300 shadow-amber-950/40'
           }`}
         >
           {isNight ? (
-            <Moon className="w-4 h-4 text-indigo-400 animate-pulse" />
+            <Moon className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
           ) : (
-            <Sun className="w-4 h-4 text-amber-400" />
+            <Sun className="w-3.5 h-3.5 text-amber-400" />
           )}
-          <span className="tracking-wide">{getPhaseName()}</span>
+          <span className="tracking-wide font-sans">{getPhaseName()}</span>
         </div>
 
+        {/* 重新开始按钮 (Restart Game) */}
+        <button
+          onClick={onRestart}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-400/50 text-xs font-medium shadow-sm transition-all active:scale-95 cursor-pointer"
+          title={isZh ? '重置并开启新局' : 'Restart New Game'}
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline font-sans">{isZh ? '重新开始' : 'Restart'}</span>
+        </button>
+
+        {/* 全局声音开关 */}
+        {onToggleMute && (
+          <button
+            onClick={onToggleMute}
+            className="p-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-all cursor-pointer shadow-sm active:scale-95"
+            title={muted ? (isZh ? '开启声音' : 'Unmute') : (isZh ? '静音' : 'Mute')}
+          >
+            {muted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-amber-400" />}
+          </button>
+        )}
+
         {/* 语言切换器 (开局后锁定不可修改) */}
-        <div className="flex items-center bg-slate-900/90 border border-amber-500/30 rounded-xl p-1 shadow-inner">
+        <div className="flex items-center bg-slate-900/90 border border-amber-500/30 rounded-lg p-0.5 shadow-inner">
           <button
             disabled={isGameStarted}
             onClick={() => onLanguageChange('zh-CN')}
-            className={`px-2.5 py-1 text-xs rounded-lg font-serif transition-all cursor-pointer ${
+            className={`px-2 py-0.5 text-xs rounded-md transition-all cursor-pointer font-sans ${
               language === 'zh-CN'
-                ? 'bg-gradient-to-r from-amber-600 to-rose-700 text-white font-bold shadow-md'
+                ? 'bg-gradient-to-r from-amber-600 to-rose-700 text-white font-bold shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             } ${isGameStarted ? 'cursor-not-allowed opacity-60' : ''}`}
             title={isGameStarted ? (isZh ? '局内不可更改语言' : 'Language locked during game') : ''}
@@ -100,9 +127,9 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             disabled={isGameStarted}
             onClick={() => onLanguageChange('en-US')}
-            className={`px-2.5 py-1 text-xs rounded-lg font-serif transition-all cursor-pointer ${
+            className={`px-2 py-0.5 text-xs rounded-md transition-all cursor-pointer font-sans ${
               language === 'en-US'
-                ? 'bg-gradient-to-r from-amber-600 to-rose-700 text-white font-bold shadow-md'
+                ? 'bg-gradient-to-r from-amber-600 to-rose-700 text-white font-bold shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             } ${isGameStarted ? 'cursor-not-allowed opacity-60' : ''}`}
             title={isGameStarted ? (isZh ? '局内不可更改语言' : 'Language locked during game') : ''}
