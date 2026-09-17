@@ -1,6 +1,15 @@
 import React from 'react';
 import type { Player, Language } from 'voice-werewolf-shared';
-import { Skull, Mic, ShieldAlert, Sparkles } from 'lucide-react';
+import {
+  Skull,
+  Shield,
+  Moon,
+  Flame,
+  Feather,
+  Compass,
+  Swords,
+  Sparkles,
+} from 'lucide-react';
 
 interface PlayerCardProps {
   player: Player;
@@ -21,109 +30,197 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 }) => {
   const isZh = language === 'zh-CN';
 
-  const getRoleLabel = () => {
-    switch (player.role) {
-      case 'WEREWOLF':
-        return isZh ? '狼人' : 'Werewolf';
-      case 'SEER':
-        return isZh ? '预言家' : 'Seer';
-      case 'WITCH':
-        return isZh ? '女巫' : 'Witch';
-      case 'VILLAGER':
-        return isZh ? '平民' : 'Villager';
+  // 专属纹章与色彩主题
+  const getCrestTheme = () => {
+    if (!player.isAI) {
+      return {
+        bg: 'from-amber-500/20 via-rose-900/30 to-slate-900',
+        border: 'border-amber-500/40',
+        ring: 'ring-amber-400',
+        icon: Compass,
+        accent: 'text-amber-300',
+        title: isZh ? '玩家宿主' : 'Commander',
+      };
+    }
+    switch (player.id) {
+      case 2:
+        return {
+          bg: 'from-purple-900/30 via-slate-900 to-indigo-950',
+          border: 'border-purple-500/30',
+          ring: 'ring-purple-400',
+          icon: Moon,
+          accent: 'text-purple-300',
+          title: isZh ? '敏锐直觉' : 'Intuitive',
+        };
+      case 3:
+        return {
+          bg: 'from-blue-900/30 via-slate-900 to-cyan-950',
+          border: 'border-blue-500/30',
+          ring: 'ring-blue-400',
+          icon: Swords,
+          accent: 'text-blue-300',
+          title: isZh ? '逻辑学者' : 'Analytical',
+        };
+      case 4:
+        return {
+          bg: 'from-red-900/30 via-slate-900 to-amber-950',
+          border: 'border-red-500/30',
+          ring: 'ring-red-400',
+          icon: Flame,
+          accent: 'text-red-300',
+          title: isZh ? '狂热执矛' : 'Aggressive',
+        };
+      case 5:
+        return {
+          bg: 'from-emerald-900/30 via-slate-900 to-teal-950',
+          border: 'border-emerald-500/30',
+          ring: 'ring-emerald-400',
+          icon: Shield,
+          accent: 'text-emerald-300',
+          title: isZh ? '温和守御' : 'Defensive',
+        };
       default:
-        return player.role;
+        return {
+          bg: 'from-violet-900/30 via-slate-900 to-slate-950',
+          border: 'border-violet-500/30',
+          ring: 'ring-violet-400',
+          icon: Feather,
+          accent: 'text-violet-300',
+          title: isZh ? '冷峻观察' : 'Skeptical',
+        };
     }
   };
 
-  const getRoleBadgeStyle = () => {
-    if (player.role === 'WEREWOLF') return 'bg-rose-950/80 text-rose-300 border-rose-600/50';
-    if (player.role === 'SEER') return 'bg-purple-950/80 text-purple-300 border-purple-600/50';
-    if (player.role === 'WITCH') return 'bg-emerald-950/80 text-emerald-300 border-emerald-600/50';
-    return 'bg-amber-950/80 text-amber-300 border-amber-600/50';
+  const theme = getCrestTheme();
+  const CrestIcon = theme.icon;
+
+  const getRoleBadge = () => {
+    switch (player.role) {
+      case 'WEREWOLF':
+        return {
+          name: isZh ? '狼人' : 'Werewolf',
+          style: 'bg-red-950/90 text-red-300 border-red-600/70 shadow-red-950/50',
+        };
+      case 'SEER':
+        return {
+          name: isZh ? '预言家' : 'Seer',
+          style: 'bg-purple-950/90 text-purple-300 border-purple-600/70 shadow-purple-950/50',
+        };
+      case 'WITCH':
+        return {
+          name: isZh ? '女巫' : 'Witch',
+          style: 'bg-emerald-950/90 text-emerald-300 border-emerald-600/70 shadow-emerald-950/50',
+        };
+      case 'VILLAGER':
+        return {
+          name: isZh ? '平民' : 'Villager',
+          style: 'bg-amber-950/90 text-amber-300 border-amber-600/70 shadow-amber-950/50',
+        };
+      default:
+        return {
+          name: player.role,
+          style: 'bg-slate-800 text-slate-300 border-slate-700',
+        };
+    }
   };
 
   return (
     <div
       onClick={player.isAlive && onSelect ? onSelect : undefined}
-      className={`relative flex flex-col items-center p-3 rounded-2xl transition-all duration-300 ${
-        onSelect && player.isAlive ? 'cursor-pointer hover:scale-105' : ''
+      className={`group relative flex flex-col items-center w-full p-3.5 rounded-2xl transition-all duration-300 select-none ${
+        onSelect && player.isAlive
+          ? 'cursor-pointer hover:-translate-y-1 hover:shadow-2xl'
+          : ''
       } ${
         isSelected
-          ? 'ring-2 ring-amber-400 bg-amber-950/20'
-          : 'bg-slate-900/80 border border-slate-800/80 hover:border-slate-700'
-      } ${!player.isAlive ? 'opacity-40 grayscale' : ''} ${
-        isCurrentSpeaker
-          ? 'ring-2 ring-rose-500 shadow-xl shadow-rose-950/50 bg-slate-900'
-          : ''
-      }`}
+          ? 'ring-2 ring-amber-400 bg-amber-950/30 shadow-gothic-gold scale-[1.02]'
+          : isCurrentSpeaker
+            ? 'ring-2 ring-rose-500 shadow-gothic-blood bg-slate-900/95'
+            : 'bg-gradient-to-b ' + theme.bg + ' border ' + theme.border + ' shadow-gothic-card'
+      } ${!player.isAlive ? 'opacity-35 grayscale contrast-125' : ''}`}
     >
-      {/* 席位角标 */}
-      <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 flex items-center justify-center shadow">
-        {player.id}
-      </span>
+      {/* 席位编号金币印鉴 */}
+      <div className="absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800 p-0.5 shadow-md flex items-center justify-center z-10">
+        <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center font-serif text-xs font-bold text-amber-300">
+          {player.id}
+        </div>
+      </div>
 
-      {/* 头像区域与波形动画环 */}
+      {/* 说话中光圈与外发光扩散 */}
+      {isCurrentSpeaker && player.isAlive && (
+        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 opacity-60 blur-sm animate-pulse-glow -z-10"></div>
+      )}
+
+      {/* 角色纹章徽印与头像 */}
       <div className="relative my-1">
+        {/* 说话者外层神圣旋转光晕 (仅底环旋转，中心图标稳固) */}
+        {isCurrentSpeaker && player.isAlive && (
+          <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-400 to-rose-600 animate-spin-slow opacity-80 blur-[2px]" />
+        )}
+
         <div
-          className={`w-16 h-16 rounded-full flex items-center justify-center overflow-hidden border-2 transition-all ${
+          className={`relative w-16 h-16 rounded-2xl p-0.5 bg-gradient-to-br ${
             isCurrentSpeaker
-              ? 'border-rose-500 animate-pulse'
-              : 'border-slate-700 bg-slate-800'
-          }`}
+              ? 'from-amber-400 via-rose-500 to-amber-600'
+              : 'from-slate-700/80 via-slate-800 to-slate-900'
+          } shadow-lg transition-transform duration-200 group-hover:scale-105`}
         >
-          {player.isAI ? (
-            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center font-serif text-xl font-bold text-slate-300">
-              {player.persona?.nameZh?.[0] || 'AI'}
-            </div>
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-rose-900 to-indigo-950 flex items-center justify-center text-rose-300 font-bold text-lg">
-              YOU
-            </div>
-          )}
+          <div className="w-full h-full rounded-[14px] bg-slate-950/95 flex flex-col items-center justify-center overflow-hidden relative">
+            <CrestIcon className={`w-8 h-8 ${theme.accent} transition-transform duration-200 group-hover:scale-110`} />
+            {!player.isAI && (
+              <span className="absolute bottom-1 text-[8px] font-bold tracking-widest text-amber-400 font-mono px-1 py-0.2 rounded bg-amber-950/60 border border-amber-500/30">
+                YOU
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* 说话中音浪动效 */}
+        {/* 说话波形动态频谱条 */}
         {isCurrentSpeaker && player.isAlive && (
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-rose-600/90 px-1.5 py-0.5 rounded-full shadow">
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-gradient-to-r from-rose-600 to-amber-600 px-2 py-0.5 rounded-full shadow-lg border border-white/20 z-20">
             <span className="w-1 h-3 bg-white rounded-full animate-wave-bar"></span>
-            <span className="w-1 h-4 bg-white rounded-full animate-wave-bar [animation-delay:0.2s]"></span>
-            <span className="w-1 h-2 bg-white rounded-full animate-wave-bar [animation-delay:0.4s]"></span>
+            <span className="w-1 h-5 bg-white rounded-full animate-wave-bar [animation-delay:0.15s]"></span>
+            <span className="w-1 h-2 bg-white rounded-full animate-wave-bar [animation-delay:0.3s]"></span>
+            <span className="w-1 h-4 bg-white rounded-full animate-wave-bar [animation-delay:0.45s]"></span>
           </div>
         )}
 
-        {/* 阵亡骷髅标记 */}
+        {/* 阵亡破裂覆面 */}
         {!player.isAlive && (
-          <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
-            <Skull className="w-8 h-8 text-red-500" />
+          <div className="absolute inset-0 bg-black/85 rounded-2xl flex flex-col items-center justify-center backdrop-blur-[1px] border border-red-900/60 z-20">
+            <Skull className="w-8 h-8 text-red-500 drop-shadow-md animate-pulse" />
+            <span className="text-[9px] font-bold text-red-400 mt-0.5 font-mono tracking-widest">OUT</span>
           </div>
         )}
       </div>
 
-      {/* 玩家名称与身份 */}
-      <div className="text-center mt-1 w-full">
-        <div className="text-xs font-semibold text-slate-200 truncate">
-          {player.name}
+      {/* 玩家名称与名册 */}
+      <div className="text-center mt-2 w-full">
+        <div className="flex items-center justify-center gap-1">
+          <span className="text-xs font-bold text-slate-100 tracking-wide truncate max-w-[95px]">
+            {player.name}
+          </span>
         </div>
 
-        {/* 身份卡片 (仅己方或终局可见) */}
+        {/* 身份铭牌 */}
         {showRole ? (
           <div
-            className={`mt-1 text-[10px] px-2 py-0.5 rounded border font-medium inline-block ${getRoleBadgeStyle()}`}
+            className={`mt-1 text-[10px] px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 shadow-sm ${getRoleBadge().style}`}
           >
-            {getRoleLabel()}
+            <Sparkles className="w-2.5 h-2.5" />
+            <span>{getRoleBadge().name}</span>
           </div>
         ) : (
-          <div className="mt-1 text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-medium inline-block">
-            {player.isAI ? (isZh ? 'AI 玩家' : 'AI Agent') : (isZh ? '真人玩家' : 'Human')}
+          <div className="mt-1 text-[10px] px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-800 text-slate-400 font-medium inline-block">
+            {theme.title}
           </div>
         )}
 
-        {/* AI 性格标签 */}
+        {/* AI 个性特征摘要 */}
         {player.isAI && player.persona && (
-          <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[100px] mx-auto">
+          <div className="mt-1 text-[9px] text-slate-400 leading-tight truncate max-w-[110px] mx-auto opacity-75 group-hover:opacity-100 transition-opacity">
             {isZh ? player.persona.toneStyleZh : player.persona.toneStyleEn}
-          </p>
+          </div>
         )}
       </div>
     </div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import type { Language } from 'voice-werewolf-shared';
+import React, { useState, useEffect, useRef } from 'react';
+import type { Language, GamePhase } from 'voice-werewolf-shared';
 import { Header } from './components/Header.js';
 import { RoundTable } from './components/RoundTable.js';
 import { LiveSubtitles } from './components/LiveSubtitles.js';
@@ -8,6 +8,7 @@ import { DevPanel } from './components/DevPanel.js';
 import { useGameSocket } from './hooks/useGameSocket.js';
 import { useAudioRecorder } from './hooks/useAudioRecorder.js';
 import { useAudioPlayer } from './hooks/useAudioPlayer.js';
+import { sfx } from './utils/soundEffects.js';
 
 export function App() {
   const [language, setLanguage] = useState<Language>('zh-CN');
@@ -41,9 +42,26 @@ export function App() {
     },
   });
 
-  // 当轮到真人 (1号) 发言时，自动开启麦克风录音并推送 AssemblyAI
+  // 监听昼夜与公投状态流转，触发沉浸式程序化音效
+  const prevPhaseRef = useRef<GamePhase | 'IDLE'>('IDLE');
+  useEffect(() => {
+    const currentPhase = gameState?.phase || 'IDLE';
+    if (currentPhase !== prevPhaseRef.current) {
+      if (currentPhase.startsWith('NIGHT')) {
+        sfx.playNightfall();
+      } else if (currentPhase === 'DAY_START') {
+        sfx.playDaybreak();
+      } else if (currentPhase === 'DAY_VOTE') {
+        sfx.playGavel();
+      }
+      prevPhaseRef.current = currentPhase;
+    }
+  }, [gameState?.phase]);
+
+  // 当轮到真人 (1号) 发言时，播放提示音并自动开启麦克风录音推流 AssemblyAI
   useEffect(() => {
     if (activeSpeakerId === 1) {
+      sfx.playMicChime();
       startRecording();
     } else {
       stopRecording();
@@ -58,7 +76,7 @@ export function App() {
   const currentSpeaker = gameState?.players.find((p) => p.id === activeSpeakerId);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col justify-between bg-runic-grid">
       {/* 顶部导航与语言锁 */}
       <Header
         language={language}
@@ -66,6 +84,7 @@ export function App() {
         isGameStarted={Boolean(gameState && gameState.phase !== 'IDLE')}
         phase={gameState?.phase || 'IDLE'}
         round={gameState?.round || 0}
+        isConnected={isConnected}
       />
 
       {/* 主界面：暗黑圆桌与实时交互 */}
@@ -76,9 +95,13 @@ export function App() {
           activeSpeakerId={activeSpeakerId}
           language={language}
           selectedTargetId={selectedTargetId}
-          onSelectTarget={setSelectedTargetId}
+          onSelectTarget={(id) => {
+            sfx.playMicChime();
+            setSelectedTargetId(id);
+          }}
           isGameOver={gameState?.phase === 'GAME_OVER'}
           announcement={announcement}
+          phase={gameState?.phase || 'IDLE'}
         />
 
         {/* AssemblyAI 实时同传打字字幕 */}
