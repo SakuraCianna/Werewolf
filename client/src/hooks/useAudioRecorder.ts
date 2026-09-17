@@ -8,7 +8,8 @@ export function useAudioRecorder({ onAudioChunk }: AudioRecorderOptions) {
   const [isRecording, setIsRecording] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const workletNodeRef = useRef<AudioWorkletNode | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const onAudioChunkRef = useRef(onAudioChunk);
   onAudioChunkRef.current = onAudioChunk;
 
@@ -29,25 +30,50 @@ export function useAudioRecorder({ onAudioChunk }: AudioRecorderOptions) {
       });
 
       mediaStreamRef.current = stream;
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const audioCtx = new AudioContext();
       audioContextRef.current = audioCtx;
 
-      const source = audioCtx.createMediaStreamSource(stream);
-      // 使用 4096 缓冲区，在 48kHz 下约 85ms 产生一个采样块
-      const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
+      // 使用现代 W3C 标准 AudioWorklet (完全替代已弃用的 ScriptProcessorNode)
+      const workletSource = `
+        class AudioRecorderWorklet extends AudioWorkletProcessor {
+          process(inputs) {
+            const input = inputs[0];
+            if (input && input[0] && input[0].length > 0) {
+              this.port.postMessage(input[0]);
+            }
+            return true;
+          }
+        }
+        registerProcessor('audio-recorder-worklet', AudioRecorderWorklet);
+      `;
 
-      processor.onaudioprocess = (e) => {
-        const inputData = e.inputBuffer.getChannelData(0);
-        // 降采样到 16000Hz PCM 16-bit
+      const blob = new Blob([workletSource], { type: 'application/javascript' });
+      const workletUrl = URL.createObjectURL(blob);
+      await audioCtx.audioWorklet.addModule(workletUrl);
+      URL.revokeObjectURL(workletUrl);
+
+      const workletNode = new AudioWorkletNode(audioCtx, 'audio-recorder-worklet');
+      workletNodeRef.current = workletNode;
+
+      workletNode.port.onmessage = (e: MessageEvent<Float32Array>) => {
+        const inputData = e.data;
+        // 降采样至 16000Hz PCM 16-bit
         const downsampled = downsampleBuffer(inputData, audioCtx.sampleRate, 16000);
         const pcm16 = floatTo16BitPCM(downsampled);
         const base64 = bufferToBase64(pcm16);
         onAudioChunkRef.current(base64);
       };
 
-      source.connect(processor);
-      processor.connect(audioCtx.destination);
+      const source = audioCtx.createMediaStreamSource(stream);
+      sourceNodeRef.current = source;
+      source.connect(workletNode);
+
+      // 连接静音增益节点以维持处理管道运转，同时避免麦克风声音本地回放形成啸叫
+      const muteGain = audioCtx.createGain();
+      muteGain.gain.value = 0;
+      workletNode.connect(muteGain);
+      muteGain.connect(audioCtx.destination);
+
       setIsRecording(true);
     } catch (err) {
       console.warn('Microphone access not granted or failed:', err);
@@ -56,9 +82,14 @@ export function useAudioRecorder({ onAudioChunk }: AudioRecorderOptions) {
   }, []);
 
   const stopRecording = useCallback(() => {
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
+    if (workletNodeRef.current) {
+      workletNodeRef.current.port.close();
+      workletNodeRef.current.disconnect();
+      workletNodeRef.current = null;
+    }
+    if (sourceNodeRef.current) {
+      sourceNodeRef.current.disconnect();
+      sourceNodeRef.current = null;
     }
     if (audioContextRef.current) {
       audioContextRef.current.close().catch(() => {});

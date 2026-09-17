@@ -31,8 +31,8 @@ export class AssemblyAIService {
     return new Promise((resolve, reject) => {
       try {
         this.isConnecting = true;
-        // AssemblyAI Real-Time Streaming v3 Endpoint
-        const endpoint = `wss://streaming.assemblyai.com/v3/ws?sample_rate=${sampleRate}&speech_model=universal-3-5-pro`;
+        // AssemblyAI Real-Time Streaming v3 Endpoint (专为 Voice Agent 优化的低延迟参数)
+        const endpoint = `wss://streaming.assemblyai.com/v3/ws?sample_rate=${sampleRate}&speech_model=universal-3-5-pro&encoding=pcm_s16le&format_turns=true&min_turn_silence=300&max_turn_silence=1500`;
         this.ws = new WebSocket(endpoint, {
           headers: {
             Authorization: config.assemblyAiApiKey,
