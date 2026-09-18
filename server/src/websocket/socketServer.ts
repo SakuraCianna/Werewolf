@@ -121,16 +121,21 @@ export class GameSocketServer {
 
         if (action === 'KILL' && targetId && currentPhase === 'NIGHT_WOLF' && human.role === 'WEREWOLF') {
           this.engine.executeWolfKill(targetId);
-          this.advanceNightPhase();
+          this.broadcast('GAME_STATE_SYNC', { state: this.engine.getState() });
+          setTimeout(() => this.advanceNightPhase(), 1500);
         } else if (action === 'CHECK' && targetId && currentPhase === 'NIGHT_SEER' && human.role === 'SEER') {
           this.engine.executeSeerCheck(targetId);
-          this.advanceNightPhase();
+          // 立即同步查验历史给客户端，并预留 3.2 秒供预言家阅览查验结果
+          this.broadcast('GAME_STATE_SYNC', { state: this.engine.getState() });
+          setTimeout(() => this.advanceNightPhase(), 3200);
         } else if (action === 'SAVE' && currentPhase === 'NIGHT_WITCH' && human.role === 'WITCH') {
           this.engine.executeWitchSave();
-          this.advanceNightPhase();
+          this.broadcast('GAME_STATE_SYNC', { state: this.engine.getState() });
+          setTimeout(() => this.advanceNightPhase(), 1600);
         } else if (action === 'POISON' && targetId && currentPhase === 'NIGHT_WITCH' && human.role === 'WITCH') {
           this.engine.executeWitchPoison(targetId);
-          this.advanceNightPhase();
+          this.broadcast('GAME_STATE_SYNC', { state: this.engine.getState() });
+          setTimeout(() => this.advanceNightPhase(), 1600);
         } else if (action === 'PASS' && currentPhase === 'NIGHT_WITCH' && human.role === 'WITCH') {
           this.advanceNightPhase();
         }

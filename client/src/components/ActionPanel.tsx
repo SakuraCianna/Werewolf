@@ -130,22 +130,22 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
             {isZh ? '【暗夜狼嗥】请在圆桌上锁定今夜猎杀的目标：' : '[Werewolf Hunt] Select a victim from the round table:'}
           </p>
           <button
-            disabled={!selectedTargetId}
+            disabled={!selectedTargetId || selectedTargetId === 1}
             onClick={() => {
-              if (selectedTargetId) {
+              if (selectedTargetId && selectedTargetId !== 1) {
                 sfx.playGavel();
                 onNightAction('KILL', selectedTargetId);
               }
             }}
             className={`flex items-center gap-2 px-5 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
-              selectedTargetId
+              selectedTargetId && selectedTargetId !== 1
                 ? 'bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white shadow-gothic-blood border border-red-500/40 cursor-pointer active:scale-95'
                 : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Skull className="w-4 h-4" />
             <span className="font-sans">
-              {selectedTargetId
+              {selectedTargetId && selectedTargetId !== 1
                 ? isZh
                   ? `猎杀 ${selectedTargetId} 号玩家`
                   : `Eliminate Player #${selectedTargetId}`
@@ -158,70 +158,129 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
       )}
 
       {/* 夜晚预言家验人 */}
-      {phase === 'NIGHT_SEER' && human?.role === 'SEER' && (
-        <div className="flex flex-col items-center gap-1.5">
-          <p className="text-xs text-purple-300 font-sans flex items-center gap-1.5 font-semibold">
-            <Eye className="w-4 h-4 text-purple-400" />
-            {isZh ? '【圣眼凝视】请选择一名玩家窥视其阵营光芒：' : '[Seer Divination] Select a player to reveal their true camp:'}
-          </p>
-          <button
-            disabled={!selectedTargetId}
-            onClick={() => {
-              if (selectedTargetId) {
-                sfx.playMicChime();
-                onNightAction('CHECK', selectedTargetId);
-              }
-            }}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
-              selectedTargetId
-                ? 'bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-600 hover:to-indigo-700 text-white shadow-xl border border-purple-400/40 cursor-pointer active:scale-95'
-                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
-            }`}
-          >
-            <Eye className="w-4 h-4" />
-            <span className="font-sans">
-              {selectedTargetId
-                ? isZh
-                  ? `查验 ${selectedTargetId} 号真实阵营`
-                  : `Inspect Player #${selectedTargetId}`
-                : isZh
-                  ? '请点击上方圆桌选择目标'
-                  : 'Click a player card above'}
-            </span>
-          </button>
-        </div>
-      )}
+      {phase === 'NIGHT_SEER' && human?.role === 'SEER' && (() => {
+        const thisRoundCheck = gameState.seerCheckedHistory.find((h) => h.round === gameState.round);
+        return (
+          <div className="flex flex-col items-center gap-2">
+            {thisRoundCheck ? (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-950/80 border border-purple-500/60 shadow-lg text-purple-200 animate-pulse">
+                <Sparkles className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-bold font-sans">
+                  {isZh
+                    ? `✦ 圣眼神谕：${thisRoundCheck.targetId}号玩家的真实身份是【${thisRoundCheck.isWolf ? '狼人 🐺' : '好人 🛡️'}】！`
+                    : `✦ Divine Revelation: Player #${thisRoundCheck.targetId} is a [${thisRoundCheck.isWolf ? 'WEREWOLF 🐺' : 'GOOD PERSON 🛡️'}]!`}
+                </span>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-purple-300 font-sans flex items-center gap-1.5 font-semibold">
+                  <Eye className="w-4 h-4 text-purple-400" />
+                  {isZh ? '【圣眼凝视】请在圆桌上选择一名玩家窥视其阵营：' : '[Seer Divination] Select a player to reveal their true camp:'}
+                </p>
+                <button
+                  disabled={!selectedTargetId || selectedTargetId === 1}
+                  onClick={() => {
+                    if (selectedTargetId && selectedTargetId !== 1) {
+                      sfx.playMicChime();
+                      onNightAction('CHECK', selectedTargetId);
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-5 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
+                    selectedTargetId && selectedTargetId !== 1
+                      ? 'bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-600 hover:to-indigo-700 text-white shadow-xl border border-purple-400/40 cursor-pointer active:scale-95'
+                      : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                  }`}
+                >
+                  <Eye className="w-4 h-4" />
+                  <span className="font-sans">
+                    {selectedTargetId && selectedTargetId !== 1
+                      ? isZh
+                        ? `查验 ${selectedTargetId} 号真实阵营`
+                        : `Inspect Player #${selectedTargetId}`
+                      : isZh
+                        ? '请点击上方圆桌选择查验目标'
+                        : 'Click a player card above to inspect'}
+                  </span>
+                </button>
+              </>
+            )}
+
+            {/* 预言家历史验人记录徽条 */}
+            {gameState.seerCheckedHistory.length > 0 && (
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-sans mt-0.5">
+                <span>{isZh ? '过往查验:' : 'History:'}</span>
+                {gameState.seerCheckedHistory.map((h, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-1.5 py-0.2 rounded border font-semibold ${
+                      h.isWolf
+                        ? 'bg-red-950/80 text-red-300 border-red-500/40'
+                        : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                    }`}
+                  >
+                    {isZh ? `${h.targetId}号` : `#${h.targetId}`}({h.isWolf ? (isZh ? '狼人' : 'Wolf') : (isZh ? '好人' : 'Good')})
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 夜晚女巫用药 */}
       {phase === 'NIGHT_WITCH' && human?.role === 'WITCH' && (
         <div className="flex flex-col items-center gap-1.5">
-          <p className="text-xs text-emerald-300 font-sans flex items-center gap-1.5 font-semibold">
-            <Wand2 className="w-4 h-4 text-emerald-400" />
-            {isZh ? '【秘药秘仪】女巫之夜，调配解药或毒药：' : '[Witch Alchemy] Brew potion to save or poison:'}
-          </p>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-900/90 border border-emerald-500/40 text-xs text-emerald-300 font-sans shadow-sm">
+            <Wand2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="font-bold">
+              {gameState.nightVictimId
+                ? (isZh ? `今夜倒牌玩家：${gameState.nightVictimId}号玩家 ⚠️` : `Attacked tonight: Player #${gameState.nightVictimId} ⚠️`)
+                : (isZh ? '今夜是平安夜 (暂无人倒牌)' : 'Peaceful night (no victim)')}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             {gameState.witchInventory.hasAntidote && (
               <button
+                disabled={!gameState.nightVictimId}
                 onClick={() => {
                   sfx.playMicChime();
                   onNightAction('SAVE');
                 }}
-                className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-sans font-semibold border border-emerald-400/40 shadow-md cursor-pointer active:scale-95"
+                className={`flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-white text-xs font-sans font-semibold border shadow-md transition-all ${
+                  gameState.nightVictimId
+                    ? 'bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-600 hover:to-teal-700 border-emerald-400/40 cursor-pointer active:scale-95'
+                    : 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span className="font-sans">{isZh ? '使用解药' : 'Cast Healing'}</span>
+                <span className="font-sans">
+                  {gameState.nightVictimId
+                    ? (isZh ? `救活 ${gameState.nightVictimId} 号` : `Save #${gameState.nightVictimId}`)
+                    : (isZh ? '无人倒牌无须解药' : 'No victim to save')}
+                </span>
               </button>
             )}
-            {gameState.witchInventory.hasPoison && selectedTargetId && (
+            {gameState.witchInventory.hasPoison && (
               <button
+                disabled={!selectedTargetId || selectedTargetId === 1}
                 onClick={() => {
-                  sfx.playGavel();
-                  onNightAction('POISON', selectedTargetId);
+                  if (selectedTargetId && selectedTargetId !== 1) {
+                    sfx.playGavel();
+                    onNightAction('POISON', selectedTargetId);
+                  }
                 }}
-                className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-800 to-red-900 hover:from-purple-700 hover:to-red-800 text-white text-xs font-sans font-semibold border border-purple-400/40 shadow-md cursor-pointer active:scale-95"
+                className={`flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-white text-xs font-sans font-semibold border shadow-md transition-all ${
+                  selectedTargetId && selectedTargetId !== 1
+                    ? 'bg-gradient-to-r from-purple-800 to-red-900 hover:from-purple-700 hover:to-red-800 border-purple-400/40 cursor-pointer active:scale-95'
+                    : 'bg-slate-800/80 text-slate-500 border-slate-700 cursor-not-allowed'
+                }`}
               >
                 <Skull className="w-3.5 h-3.5" />
-                <span className="font-sans">{isZh ? `赐毒 ${selectedTargetId} 号` : `Poison #${selectedTargetId}`}</span>
+                <span className="font-sans">
+                  {selectedTargetId && selectedTargetId !== 1
+                    ? (isZh ? `赐毒 ${selectedTargetId} 号` : `Poison #${selectedTargetId}`)
+                    : (isZh ? '选择圆桌目标以赐毒' : 'Select target to poison')}
+                </span>
               </button>
             )}
             <button

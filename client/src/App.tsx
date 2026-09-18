@@ -4,6 +4,7 @@ import { Header } from './components/Header.js';
 import { RoundTable } from './components/RoundTable.js';
 import { LiveSubtitles } from './components/LiveSubtitles.js';
 import { ActionPanel } from './components/ActionPanel.js';
+import { GameOverModal } from './components/GameOverModal.js';
 import { DevPanel } from './components/DevPanel.js';
 import { useGameSocket } from './hooks/useGameSocket.js';
 import { useAudioRecorder } from './hooks/useAudioRecorder.js';
@@ -16,8 +17,11 @@ export function App() {
   const [selectedTargetId, setSelectedTargetId] = useState<number | null>(null);
   const [muted, setMuted] = useState(sfx.getMuted());
   const [preferredRole, setPreferredRole] = useState<Role | 'RANDOM'>('RANDOM');
+  const [showGameOverModal, setShowGameOverModal] = useState(true);
 
-  const { playAudioBase64 } = useAudioPlayer();
+  const { playAudioBase64, stopAudio } = useAudioPlayer();
+  const serverAudioActiveRef = useRef(false);
+  const serverAudioSpeakerIdRef = useRef<number | null>(null);
 
   const {
     gameState,
@@ -34,8 +38,14 @@ export function App() {
     skipTurn,
     simulateSpeech,
   } = useGameSocket({
-    onAudioChunkReceived: (_speakerId, base64) => {
-      playAudioBase64(base64);
+    onAudioChunkReceived: (speakerId, base64) => {
+      if (muted) return;
+      serverAudioSpeakerIdRef.current = speakerId;
+      serverAudioActiveRef.current = true;
+      narrator.stop();
+      playAudioBase64(base64, () => {
+        serverAudioActiveRef.current = false;
+      });
     },
   });
 
@@ -51,8 +61,21 @@ export function App() {
     setMuted(next);
     if (next) {
       narrator.stop();
+      stopAudio();
     }
   };
+
+  // 每当发言人切换时重置流式音频接收标记
+  useEffect(() => {
+    serverAudioSpeakerIdRef.current = null;
+  }, [activeSpeakerId]);
+
+  // 终局时默认自动打开复盘弹窗
+  useEffect(() => {
+    if (gameState?.phase === 'GAME_OVER') {
+      setShowGameOverModal(true);
+    }
+  }, [gameState?.phase]);
 
   // 监听昼夜与公投状态流转，触发沉浸式程序化音效
   const prevPhaseRef = useRef<GamePhase | 'IDLE'>('IDLE');
@@ -74,12 +97,13 @@ export function App() {
   useEffect(() => {
     if (activeSpeakerId === 1) {
       narrator.stop();
+      stopAudio();
       sfx.playMicChime();
       startRecording();
     } else {
       stopRecording();
     }
-  }, [activeSpeakerId, startRecording, stopRecording]);
+  }, [activeSpeakerId, startRecording, stopRecording, stopAudio]);
 
   // 核心语音输出：法官神谕公告更新时，由法官原生合成声线播报
   useEffect(() => {
@@ -88,20 +112,25 @@ export function App() {
     }
   }, [announcement, language, gameState?.phase]);
 
-  // 核心语音输出：AI 玩家发言字幕更新时，由对应角色专属性格声线朗读
+  // 核心语音输出：AI 玩家发言字幕更新时，由对应角色专属性格声线朗读 (若服务端未返回流式音频则优雅兜底)
   useEffect(() => {
     if (activeSpeakerId && activeSpeakerId !== 1 && liveTranscript?.text) {
+      if (serverAudioActiveRef.current || serverAudioSpeakerIdRef.current === activeSpeakerId) {
+        return;
+      }
       narrator.speakPlayer(activeSpeakerId, liveTranscript.text, language);
     }
   }, [activeSpeakerId, liveTranscript?.text, language]);
 
   const handleStart = () => {
     narrator.stop();
+    stopAudio();
     narrator.prime();
     sfx.playNightfall();
     const roleToPass = preferredRole === 'RANDOM' ? undefined : preferredRole;
     startGame(language, roleToPass);
     setSelectedTargetId(null);
+    setShowGameOverModal(true);
   };
 
   const currentSpeaker = gameState?.players.find((p) => p.id === activeSpeakerId);
@@ -174,6 +203,16 @@ export function App() {
         language={language}
         onSkipTurn={skipTurn}
         onSimulateSpeech={simulateSpeech}
+      />
+
+      {/* 终局胜利与全员复盘弹窗 */}
+      <GameOverModal
+        isOpen={Boolean(gameState?.phase === 'GAME_OVER' && showGameOverModal)}
+        winner={gameState?.winner ?? gameResult?.winner ?? null}
+        players={gameState?.players || []}
+        language={language}
+        onRestart={handleStart}
+        onClose={() => setShowGameOverModal(false)}
       />
     </div>
   );

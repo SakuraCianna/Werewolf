@@ -68,6 +68,33 @@ describe('AgentBrain 智能体大脑与沙盒防作弊测试', () => {
     expect(voteTarget).toBe(2);
   });
 
+  it('LLM 返回空字符或纯空白时优雅回退至预置拟真表水', async () => {
+    const engine = new GameEngine();
+    const customRoles: Role[] = ['VILLAGER', 'WEREWOLF', 'WEREWOLF', 'SEER', 'WITCH', 'VILLAGER'];
+    engine.start('zh-CN', customRoles);
+
+    // 模拟 LLM 返回纯空白字符串
+    const emptySpeechDecision = await AgentBrain.generateDaySpeech(
+      2,
+      engine,
+      async () => '    \n\t   ',
+    );
+    expect(emptySpeechDecision.speech).toBeTruthy();
+    expect(emptySpeechDecision.speech.length).toBeGreaterThan(10);
+    expect(emptySpeechDecision.speech).toContain('好人牌');
+
+    // 模拟 LLM 抛出异常报错
+    const errorSpeechDecision = await AgentBrain.generateDaySpeech(
+      4,
+      engine,
+      async () => {
+        throw new Error('LLM rate limit');
+      },
+    );
+    expect(errorSpeechDecision.speech).toBeTruthy();
+    expect(errorSpeechDecision.actionTag).toBe('CLAIM_ROLE');
+  });
+
   it('夜间 AI 决策助手', () => {
     const engine = new GameEngine();
     const customRoles: Role[] = ['VILLAGER', 'WEREWOLF', 'WEREWOLF', 'SEER', 'WITCH', 'VILLAGER'];
