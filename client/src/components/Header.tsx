@@ -68,11 +68,11 @@ export const Header: React.FC<HeaderProps> = ({
             <h1 className="text-base sm:text-lg font-bold tracking-wider text-slate-100 font-sans">
               VOICE WEREWOLF
             </h1>
-            <span className="hidden md:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-sans font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
-              <Sparkles className="w-2.5 h-2.5 text-rose-400" /> AssemblyAI v3
+            <span className="hidden md:inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-sans font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
+              <Sparkles className="w-3 h-3 text-rose-400" /> AssemblyAI v3
             </span>
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-slate-400 leading-tight">
+          <div className="flex items-center gap-2 text-xs text-slate-400 leading-tight">
             <span>{isZh ? '全语音 AI 狼人杀桌游' : 'Voice Agent Tabletop'}</span>
             <span className="w-1 h-1 rounded-full bg-slate-600"></span>
             <span className="flex items-center gap-1 font-sans">
@@ -88,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* 身份预选器 (未开局时可自由指定，开局后锁定) */}
         {!isGameStarted && onPreferredRoleChange && (
           <div className="flex items-center gap-1 bg-slate-900/90 border border-amber-500/30 rounded-lg px-2 py-1 shadow-inner">
-            <span className="text-[10px] text-amber-400/90 font-sans hidden lg:inline">
+            <span className="text-xs text-amber-400/90 font-sans hidden lg:inline">
               {isZh ? '身份挑选:' : 'Role:'}
             </span>
             <select
@@ -139,8 +139,8 @@ export const Header: React.FC<HeaderProps> = ({
             title={isZh ? '邀请好友局域网联机' : 'Invite Friends to LAN match'}
           >
             <Share2 className="w-3.5 h-3.5 text-amber-400" />
-            <span className="font-mono text-[11px] text-amber-200">{roomId || 'ROOM'}</span>
-            <span className="hidden md:inline font-sans text-[11px] text-amber-300/80">
+            <span className="font-mono text-xs text-amber-200">{roomId || 'ROOM'}</span>
+            <span className="hidden md:inline font-sans text-xs text-amber-300/80">
               {isZh ? `(${humanCount}/6人)` : `(${humanCount}/6)`}
             </span>
           </button>

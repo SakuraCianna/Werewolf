@@ -50,6 +50,7 @@ export function App() {
     sendVote,
     skipTurn,
     simulateSpeech,
+    chronicleLogs,
   } = useGameSocket({
     onAudioChunkReceived: (speakerId, base64) => {
       if (muted) return;
@@ -174,53 +175,62 @@ export function App() {
         onOpenInviteModal={() => setShowInviteModal(true)}
       />
 
-      {/* 主界面：暗黑圆桌与实时交互 (严格锁定在视口高度内) */}
-      <main className="flex-1 min-h-0 flex flex-col justify-between items-center w-full max-w-5xl mx-auto px-2 sm:px-4 py-1 overflow-hidden">
-        {/* 圆桌与玩家状态 */}
-        <RoundTable
-          players={gameState?.players || []}
-          activeSpeakerId={activeSpeakerId}
-          language={language}
-          selectedTargetId={selectedTargetId}
-          onSelectTarget={(id) => {
-            sfx.playMicChime();
-            setSelectedTargetId(id);
-          }}
-          isGameOver={gameState?.phase === 'GAME_OVER'}
-          announcement={announcement}
-          phase={gameState?.phase || 'IDLE'}
-          myPlayerId={myPlayerId}
-        />
+      {/* 主界面：暗黑圆桌对战区与侧边栏法庭纪事 (严格视口自适应，零纵向滚动条) */}
+      <main className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto px-2 sm:px-4 py-1.5 flex flex-col lg:flex-row gap-3 overflow-hidden">
+        {/* 左侧主战场：圆桌与操作决策台 */}
+        <section className="flex-1 min-h-0 flex flex-col justify-between items-center overflow-hidden h-full">
+          <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
+            <RoundTable
+              players={gameState?.players || []}
+              activeSpeakerId={activeSpeakerId}
+              language={language}
+              selectedTargetId={selectedTargetId}
+              onSelectTarget={(id) => {
+                sfx.playMicChime();
+                setSelectedTargetId(id);
+              }}
+              isGameOver={gameState?.phase === 'GAME_OVER'}
+              announcement={announcement}
+              phase={gameState?.phase || 'IDLE'}
+              myPlayerId={myPlayerId}
+            />
+          </div>
 
-        {/* AssemblyAI 实时同传打字字幕与情绪测谎徽章 */}
-        <LiveSubtitles
-          speakerId={activeSpeakerId}
-          speakerName={currentSpeaker?.name || ''}
-          transcript={liveTranscript?.text || ''}
-          isFinal={liveTranscript?.isFinal ?? false}
-          language={language}
-          sentiment={latestSentiment}
-        />
+          <div className="w-full shrink-0 pt-1">
+            <ActionPanel
+              gameState={gameState}
+              language={language}
+              isRecording={isRecording}
+              selectedTargetId={selectedTargetId}
+              onStartGame={handleStart}
+              onEndSpeech={endSpeech}
+              onNightAction={(action, targetId) => {
+                sendNightAction(action, targetId);
+                setSelectedTargetId(null);
+              }}
+              onVote={(targetId) => {
+                sendVote(targetId);
+                setSelectedTargetId(null);
+              }}
+              myPlayerId={myPlayerId}
+              isHost={isHost}
+            />
+          </div>
+        </section>
 
-        {/* 下方控制与技能交互 */}
-        <ActionPanel
-          gameState={gameState}
-          language={language}
-          isRecording={isRecording}
-          selectedTargetId={selectedTargetId}
-          onStartGame={handleStart}
-          onEndSpeech={endSpeech}
-          onNightAction={(action, targetId) => {
-            sendNightAction(action, targetId);
-            setSelectedTargetId(null);
-          }}
-          onVote={(targetId) => {
-            sendVote(targetId);
-            setSelectedTargetId(null);
-          }}
-          myPlayerId={myPlayerId}
-          isHost={isHost}
-        />
+        {/* 右侧侧边栏：法庭纪事卷轴与实时同传打字机 (用户指定侧边栏布局) */}
+        <aside className="w-full lg:w-80 xl:w-96 flex-shrink-0 h-44 lg:h-full flex flex-col min-h-0 overflow-hidden">
+          <LiveSubtitles
+            speakerId={activeSpeakerId}
+            speakerName={currentSpeaker?.name || ''}
+            transcript={liveTranscript?.text || ''}
+            isFinal={liveTranscript?.isFinal ?? false}
+            language={language}
+            sentiment={latestSentiment}
+            chronicleLogs={chronicleLogs}
+            phase={gameState?.phase || 'IDLE'}
+          />
+        </aside>
       </main>
 
       {/* 开发者调试浮窗抽屉 */}

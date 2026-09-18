@@ -23,6 +23,9 @@ button,
 textarea,
 select {
   font-family: 'DengXian', '等线', 'Microsoft YaHei', sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 html,

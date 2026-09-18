@@ -90,7 +90,7 @@ export const RoundTable: React.FC<RoundTableProps> = ({
         {seatList.map((player) => (
           <div
             key={player.id}
-            className={`${seatPositions[(player.id - 1) % 6]} w-full max-w-[125px] sm:max-w-[140px] md:max-w-[155px]`}
+            className={`${seatPositions[(player.id - 1) % 6]} w-full max-w-[145px] sm:max-w-[160px] md:max-w-[175px]`}
           >
             <PlayerCard
               player={player}
@@ -105,10 +105,10 @@ export const RoundTable: React.FC<RoundTableProps> = ({
         ))}
 
         {/* 圆桌中央核心：天象仪与法官神谕台 */}
-        <div className="col-start-2 row-start-2 w-full h-full max-w-[190px] sm:max-w-[210px] flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-2xl bg-gradient-to-b from-slate-950/95 via-slate-900/90 to-slate-950/95 border border-amber-500/35 shadow-xl backdrop-blur-md text-center relative group">
+        <div className="col-start-2 row-start-2 w-full h-full max-w-[210px] sm:max-w-[235px] flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/95 via-slate-900/90 to-slate-950/95 border border-amber-500/40 shadow-xl backdrop-blur-md text-center relative group">
           {/* 天象徽章 */}
           <div
-            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center mb-1 shadow-md transition-all duration-500 ${
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-1 shadow-md transition-all duration-500 ${
               isNight
                 ? 'bg-gradient-to-br from-indigo-900 via-purple-950 to-slate-950 border border-purple-500/50 text-purple-300 shadow-purple-950/70'
                 : 'bg-gradient-to-br from-amber-600 via-yellow-700 to-amber-950 border border-amber-400/60 text-amber-200 shadow-amber-950/70'
@@ -123,14 +123,14 @@ export const RoundTable: React.FC<RoundTableProps> = ({
 
           {/* 法官神谕公告 */}
           <div className="w-full px-1">
-            <span className="text-[9px] font-sans uppercase tracking-widest text-amber-400/90 font-bold block mb-0.5">
+            <span className="text-xs font-sans uppercase tracking-widest text-amber-400/90 font-bold block mb-1">
               {isZh ? '✦ 法官神谕 ✦' : '✦ ORACLE VERDICT ✦'}
             </span>
-            <p className="text-[11px] sm:text-xs font-medium text-slate-200 leading-snug line-clamp-2 font-sans drop-shadow-sm">
+            <p className="text-xs sm:text-sm font-medium text-slate-200 leading-snug line-clamp-2 font-sans drop-shadow-sm">
               {announcement || (isZh ? '晨昏交替，等待发牌……' : 'Awaiting fateful cards...')}
             </p>
             {activeSpeakerId && (
-              <div className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-sans inline-block animate-pulse">
+              <div className="mt-1 text-xs px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-sans inline-block animate-pulse font-semibold">
                 {isZh ? `✦ ${activeSpeakerId}号 正在发言 ✦` : `✦ #${activeSpeakerId} Speaking ✦`}
               </div>
             )}

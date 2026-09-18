@@ -183,18 +183,18 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 } ${isWinner ? 'ring-1 ring-amber-500/30' : ''}`}
               >
                 {/* 席位号与存活状态 */}
-                <div className="w-full flex items-center justify-between text-[11px] mb-1.5 font-sans">
+                <div className="w-full flex items-center justify-between text-xs mb-1.5 font-sans">
                   <span className="font-bold text-slate-200">
                     {p.id}号 {p.id === myPlayerId ? (isZh ? '(你)' : '(You)') : !p.isAI ? (isZh ? '(好友)' : '(Friend)') : ''}
                   </span>
                   <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border ${
+                    className={`px-2 py-0.5 rounded text-xs font-semibold border ${
                       p.isAlive
                         ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
                         : 'bg-red-950/60 text-red-400 border-red-500/30 flex items-center gap-0.5'
                     }`}
                   >
-                    {!p.isAlive && <Skull className="w-2.5 h-2.5" />}
+                    {!p.isAlive && <Skull className="w-3 h-3" />}
                     {p.isAlive ? (isZh ? '存活' : 'Alive') : (isZh ? '出局' : 'OUT')}
                   </span>
                 </div>
@@ -224,7 +224,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 {isZh ? '✦ AI 圆桌全景战术复盘 ✦' : '✦ AI Match Tactical Review ✦'}
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/40 font-semibold">
+              <span className="text-xs px-2.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/40 font-semibold">
                 {isZh ? `🏆 本局 MVP: ${postGameReport.mvpPlayerId}号玩家` : `🏆 MVP: #${postGameReport.mvpPlayerId}`}
               </span>
             </div>

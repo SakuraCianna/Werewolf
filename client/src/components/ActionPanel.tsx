@@ -49,7 +49,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
             <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
             <span>{isZh ? '已就绪，等待房主发牌开启对局……' : 'Ready! Waiting for host to start game...'}</span>
           </div>
-          <p className="text-[10px] text-slate-400 font-sans">
+          <p className="text-xs text-slate-400 font-sans">
             {isZh ? `你的席位：${myPlayerId}号玩家` : `Your Seat: Player #${myPlayerId}`}
           </p>
         </div>
@@ -73,7 +73,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
           </span>
           <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
         </button>
-        <p className="text-[10px] text-slate-400 font-sans">
+        <p className="text-xs text-slate-400 font-sans">
           {isZh ? '支持局域网好友邀请 · 席位不足自动由 AI 补齐托管' : 'Invite LAN friends · AI fills remaining seats'}
         </p>
       </div>
@@ -106,7 +106,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   // 3. 真人出局观战
   if (!isHumanAlive) {
     return (
-      <div className="flex items-center justify-center gap-2 my-1 px-4 py-1.5 rounded-xl bg-red-950/30 border border-red-900/50 text-red-300 text-[11px] font-sans shadow backdrop-blur shrink-0">
+      <div className="flex items-center justify-center gap-2 my-1 px-4 py-1.5 rounded-xl bg-red-950/30 border border-red-900/50 text-red-300 text-xs font-sans shadow backdrop-blur shrink-0">
         <Skull className="w-3.5 h-3.5 text-red-400 animate-pulse" />
         <span className="font-sans">{isZh ? '灵魂游离：你已出局，正在以静默视角观摩战局……' : 'You have been eliminated. Spectating from beyond...'}</span>
       </div>
@@ -118,7 +118,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
       {/* 轮到真人发言 */}
       {isHumanTurn && (
         <div className="flex flex-col items-center gap-2 w-full">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-sans animate-pulse">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-sans animate-pulse">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
             <span>
               {isZh
@@ -225,12 +225,12 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
             {/* 预言家历史验人记录徽条 */}
             {gameState.seerCheckedHistory.length > 0 && (
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-sans mt-0.5">
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-sans mt-0.5">
                 <span>{isZh ? '过往查验:' : 'History:'}</span>
                 {gameState.seerCheckedHistory.map((h, idx) => (
                   <span
                     key={idx}
-                    className={`px-1.5 py-0.2 rounded border font-semibold ${
+                    className={`px-1.5 py-0.2 rounded border font-semibold text-xs ${
                       h.isWolf
                         ? 'bg-red-950/80 text-red-300 border-red-500/40'
                         : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'

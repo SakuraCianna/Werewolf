@@ -56,7 +56,7 @@ export const DevPanel: React.FC<DevPanelProps> = ({
 
             {/* 模拟文本输入表水 */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] text-slate-400">
+              <label className="text-xs text-slate-400">
                 {isZh ? '文字模拟真人发言 (免麦克风):' : 'Simulate Voice Speech (Text):'}
               </label>
               <div className="flex gap-2">
@@ -81,7 +81,7 @@ export const DevPanel: React.FC<DevPanelProps> = ({
 
             {/* 当前真实全知状态透视 (调试专用) */}
             {gameState && (
-              <div className="mt-1 pt-2 border-t border-slate-800 text-[10px] text-slate-400">
+              <div className="mt-1 pt-2 border-t border-slate-800 text-xs text-slate-400">
                 <div className="font-semibold text-slate-300 mb-1">
                   {isZh ? '场上身份透视 (仅供调试):' : 'Debug Roles (God View):'}
                 </div>
