@@ -116,13 +116,15 @@ ${trustMap}
     if (callLLM) {
       try {
         const text = await callLLM(prompt);
-        return {
-          speech: text.trim(),
-          actionTag: 'GENERAL',
-          mentionedIds: [],
-        };
+        if (text && text.trim().length > 0) {
+          return {
+            speech: text.trim(),
+            actionTag: 'GENERAL',
+            mentionedIds: [],
+          };
+        }
       } catch {
-        // 出错回退到预置拟真表水
+        // 出错或返回空内容时回退到预置拟真表水
       }
     }
 

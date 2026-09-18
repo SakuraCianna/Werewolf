@@ -1,8 +1,7 @@
 import React from 'react';
 import type { Player, Language } from 'voice-werewolf-shared';
 import { PlayerCard } from './PlayerCard.js';
-import { Moon, Sun, Volume2, VolumeX } from 'lucide-react';
-import { sfx } from '../utils/soundEffects.js';
+import { Moon, Sun } from 'lucide-react';
 
 interface RoundTableProps {
   players: Player[];
@@ -28,13 +27,6 @@ export const RoundTable: React.FC<RoundTableProps> = ({
 }) => {
   const isZh = language === 'zh-CN';
   const isNight = phase.startsWith('NIGHT');
-  const [muted, setMuted] = React.useState(sfx.getMuted());
-
-  const toggleSound = () => {
-    const next = !muted;
-    sfx.setMuted(next);
-    setMuted(next);
-  };
 
   const seatList =
     players.length === 6
