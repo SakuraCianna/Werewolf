@@ -22,6 +22,8 @@ interface ActionPanelProps {
   onEndSpeech: () => void;
   onNightAction: (action: 'KILL' | 'CHECK' | 'SAVE' | 'POISON' | 'PASS', targetId?: number) => void;
   onVote: (targetId: number) => void;
+  myPlayerId?: number;
+  isHost?: boolean;
 }
 
 export const ActionPanel: React.FC<ActionPanelProps> = ({
@@ -33,11 +35,27 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   onEndSpeech,
   onNightAction,
   onVote,
+  myPlayerId = 1,
+  isHost = true,
 }) => {
   const isZh = language === 'zh-CN';
 
   // 1. 待开局初始状态
   if (!gameState || gameState.phase === 'IDLE') {
+    if (!isHost) {
+      return (
+        <div className="flex flex-col items-center my-1.5 gap-1 shrink-0">
+          <div className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-300 font-sans text-xs font-semibold shadow-md animate-pulse">
+            <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
+            <span>{isZh ? '已就绪，等待房主发牌开启对局……' : 'Ready! Waiting for host to start game...'}</span>
+          </div>
+          <p className="text-[10px] text-slate-400 font-sans">
+            {isZh ? `你的席位：${myPlayerId}号玩家` : `Your Seat: Player #${myPlayerId}`}
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center my-1.5 gap-1 shrink-0">
         <button
@@ -56,15 +74,15 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
           <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
         </button>
         <p className="text-[10px] text-slate-400 font-sans">
-          {isZh ? '1位真人执言 · 5位AI博弈 · 原生多角色语音同传' : '1 Human Player · 5 Autonomous Agents · Multi-Voice Stream'}
+          {isZh ? '支持局域网好友邀请 · 席位不足自动由 AI 补齐托管' : 'Invite LAN friends · AI fills remaining seats'}
         </p>
       </div>
     );
   }
 
-  const human = gameState.players.find((p) => p.id === 1);
+  const human = gameState.players.find((p) => p.id === myPlayerId);
   const isHumanAlive = human?.isAlive ?? false;
-  const isHumanTurn = gameState.currentSpeakerId === 1;
+  const isHumanTurn = gameState.currentSpeakerId === myPlayerId;
   const phase = gameState.phase;
 
   // 2. 终局状态
@@ -130,22 +148,22 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
             {isZh ? '【暗夜狼嗥】请在圆桌上锁定今夜猎杀的目标：' : '[Werewolf Hunt] Select a victim from the round table:'}
           </p>
           <button
-            disabled={!selectedTargetId || selectedTargetId === 1}
+            disabled={!selectedTargetId || selectedTargetId === myPlayerId}
             onClick={() => {
-              if (selectedTargetId && selectedTargetId !== 1) {
-                sfx.playGavel();
+              if (selectedTargetId && selectedTargetId !== myPlayerId) {
+                sfx.playNightfall();
                 onNightAction('KILL', selectedTargetId);
               }
             }}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
-              selectedTargetId && selectedTargetId !== 1
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
+              selectedTargetId && selectedTargetId !== myPlayerId
                 ? 'bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white shadow-gothic-blood border border-red-500/40 cursor-pointer active:scale-95'
                 : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             }`}
           >
             <Skull className="w-4 h-4" />
             <span className="font-sans">
-              {selectedTargetId && selectedTargetId !== 1
+              {selectedTargetId && selectedTargetId !== myPlayerId
                 ? isZh
                   ? `猎杀 ${selectedTargetId} 号玩家`
                   : `Eliminate Player #${selectedTargetId}`
@@ -178,22 +196,22 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                   {isZh ? '【圣眼凝视】请在圆桌上选择一名玩家窥视其阵营：' : '[Seer Divination] Select a player to reveal their true camp:'}
                 </p>
                 <button
-                  disabled={!selectedTargetId || selectedTargetId === 1}
+                  disabled={!selectedTargetId || selectedTargetId === myPlayerId}
                   onClick={() => {
-                    if (selectedTargetId && selectedTargetId !== 1) {
+                    if (selectedTargetId && selectedTargetId !== myPlayerId) {
                       sfx.playMicChime();
                       onNightAction('CHECK', selectedTargetId);
                     }
                   }}
                   className={`flex items-center gap-2 px-5 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
-                    selectedTargetId && selectedTargetId !== 1
+                    selectedTargetId && selectedTargetId !== myPlayerId
                       ? 'bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-600 hover:to-indigo-700 text-white shadow-xl border border-purple-400/40 cursor-pointer active:scale-95'
                       : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
                   }`}
                 >
                   <Eye className="w-4 h-4" />
                   <span className="font-sans">
-                    {selectedTargetId && selectedTargetId !== 1
+                    {selectedTargetId && selectedTargetId !== myPlayerId
                       ? isZh
                         ? `查验 ${selectedTargetId} 号真实阵营`
                         : `Inspect Player #${selectedTargetId}`
@@ -262,22 +280,22 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
             )}
             {gameState.witchInventory.hasPoison && (
               <button
-                disabled={!selectedTargetId || selectedTargetId === 1}
+                disabled={!selectedTargetId || selectedTargetId === myPlayerId}
                 onClick={() => {
-                  if (selectedTargetId && selectedTargetId !== 1) {
+                  if (selectedTargetId && selectedTargetId !== myPlayerId) {
                     sfx.playGavel();
                     onNightAction('POISON', selectedTargetId);
                   }
                 }}
                 className={`flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-white text-xs font-sans font-semibold border shadow-md transition-all ${
-                  selectedTargetId && selectedTargetId !== 1
+                  selectedTargetId && selectedTargetId !== myPlayerId
                     ? 'bg-gradient-to-r from-purple-800 to-red-900 hover:from-purple-700 hover:to-red-800 border-purple-400/40 cursor-pointer active:scale-95'
                     : 'bg-slate-800/80 text-slate-500 border-slate-700 cursor-not-allowed'
                 }`}
               >
                 <Skull className="w-3.5 h-3.5" />
                 <span className="font-sans">
-                  {selectedTargetId && selectedTargetId !== 1
+                  {selectedTargetId && selectedTargetId !== myPlayerId
                     ? (isZh ? `赐毒 ${selectedTargetId} 号` : `Poison #${selectedTargetId}`)
                     : (isZh ? '选择圆桌目标以赐毒' : 'Select target to poison')}
                 </span>
@@ -300,31 +318,41 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
             <Check className="w-4 h-4 text-amber-400" />
             {isZh ? '【议会公投】选定一名最具嫌疑的玩家，投出放逐票：' : '[Council Vote] Choose a suspect to cast your exile vote:'}
           </p>
-          <button
-            disabled={!selectedTargetId}
-            onClick={() => {
-              if (selectedTargetId) {
-                sfx.playGavel();
-                onVote(selectedTargetId);
-              }
-            }}
-            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
-              selectedTargetId
-                ? 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600 text-white shadow-gothic-gold border border-amber-400/50 cursor-pointer active:scale-95'
-                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
-            }`}
-          >
-            <Check className="w-4 h-4" />
-            <span className="font-sans">
-              {selectedTargetId
-                ? isZh
-                  ? `放逐投票 → ${selectedTargetId} 号玩家`
-                  : `Cast Exile Vote → Player #${selectedTargetId}`
-                : isZh
-                  ? '请点击上方圆桌选择被投玩家'
-                  : 'Click a player card above'}
-            </span>
-          </button>
+          {(() => {
+            const isSelf = selectedTargetId === myPlayerId;
+            const canVote = Boolean(selectedTargetId && !isSelf);
+            return (
+              <button
+                disabled={!canVote}
+                onClick={() => {
+                  if (selectedTargetId && !isSelf) {
+                    sfx.playGavel();
+                    onVote(selectedTargetId);
+                  }
+                }}
+                className={`flex items-center gap-2 px-6 py-2 rounded-xl font-sans font-bold text-xs transition-all ${
+                  canVote
+                    ? 'bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600 text-white shadow-gothic-gold border border-amber-400/50 cursor-pointer active:scale-95'
+                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                }`}
+              >
+                <Check className="w-4 h-4" />
+                <span className="font-sans">
+                  {selectedTargetId
+                    ? isSelf
+                      ? isZh
+                        ? '不可投自己 (请选择他人)'
+                        : 'Cannot vote for yourself'
+                      : isZh
+                        ? `放逐投票 → ${selectedTargetId} 号玩家`
+                        : `Cast Exile Vote → Player #${selectedTargetId}`
+                    : isZh
+                      ? '请点击上方圆桌选择被投玩家'
+                      : 'Click a player card above'}
+                </span>
+              </button>
+            );
+          })()}
         </div>
       )}
     </div>

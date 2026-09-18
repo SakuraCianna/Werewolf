@@ -6,6 +6,25 @@ export type Camp = 'WOLF' | 'GOOD';
 
 export type DeathReason = 'KILLED_BY_WOLF' | 'POISONED_BY_WITCH' | 'VOTED_OUT';
 
+export type PlayerSentiment = 'CALM' | 'NERVOUS' | 'AGGRESSIVE' | 'DEFENSIVE';
+
+export interface SentimentAnalysisResult {
+  speakerId: number;
+  sentiment: PlayerSentiment;
+  score: number; // 0 ~ 100
+  labelZh: string;
+  labelEn: string;
+  quote?: string;
+}
+
+export interface PostGameReport {
+  mvpPlayerId: number;
+  mvpReason: string;
+  turningPoint: string;
+  tacticalReview: string;
+  deceptionAnalysis: string;
+}
+
 export interface AgentPersona {
   id: string;
   nameZh: string;
@@ -29,6 +48,7 @@ export interface Player {
   deathReason?: DeathReason;
   avatar: string;
   persona?: AgentPersona;
+  sentiment?: PlayerSentiment;
 }
 
 export type GamePhase =
@@ -56,6 +76,7 @@ export interface WitchInventory {
 
 export interface GameState {
   roomId: string;
+  hostPlayerId: number;
   language: Language;
   round: number;
   phase: GamePhase;
@@ -69,4 +90,6 @@ export interface GameState {
   votes: Record<number, number>; // voterId -> targetId
   lastVotedOutId: number | null;
   winner: Camp | null;
+  latestSentiment?: SentimentAnalysisResult;
+  postGameReport?: PostGameReport;
 }

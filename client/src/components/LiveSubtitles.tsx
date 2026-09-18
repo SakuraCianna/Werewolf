@@ -1,6 +1,6 @@
 import React from 'react';
 import { Activity, Mic, Sparkles } from 'lucide-react';
-import type { Language } from 'voice-werewolf-shared';
+import type { Language, SentimentAnalysisResult } from 'voice-werewolf-shared';
 
 interface LiveSubtitlesProps {
   speakerId: number | null;
@@ -8,6 +8,7 @@ interface LiveSubtitlesProps {
   transcript: string;
   isFinal: boolean;
   language: Language;
+  sentiment?: SentimentAnalysisResult | null;
 }
 
 export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
@@ -16,6 +17,7 @@ export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
   transcript,
   isFinal,
   language,
+  sentiment,
 }) => {
   const isZh = language === 'zh-CN';
 
@@ -50,10 +52,30 @@ export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
             )}
           </div>
 
-          {/* AssemblyAI 官方权威技术标识 */}
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-blue-300 text-[9px] font-sans tracking-tight shadow-sm">
-            <Activity className="w-3 h-3 text-blue-400 animate-pulse" />
-            <span>AssemblyAI Universal-3.5 Pro Streaming</span>
+          {/* 右侧：情绪测谎与 AssemblyAI 技术标识 */}
+          <div className="flex items-center gap-1.5">
+            {sentiment && (
+              <div
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[9px] font-sans font-bold shadow-sm ${
+                  sentiment.sentiment === 'NERVOUS'
+                    ? 'bg-red-950/70 text-red-300 border-red-500/40 animate-pulse'
+                    : sentiment.sentiment === 'AGGRESSIVE'
+                    ? 'bg-amber-950/70 text-amber-300 border-amber-500/40'
+                    : sentiment.sentiment === 'DEFENSIVE'
+                    ? 'bg-blue-950/70 text-blue-300 border-blue-500/40'
+                    : 'bg-emerald-950/70 text-emerald-300 border-emerald-500/40'
+                }`}
+              >
+                <span>🎭</span>
+                <span>{isZh ? sentiment.labelZh : sentiment.labelEn}</span>
+              </div>
+            )}
+
+            {/* AssemblyAI 官方权威技术标识 */}
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-blue-300 text-[9px] font-sans tracking-tight shadow-sm">
+              <Activity className="w-3 h-3 text-blue-400 animate-pulse" />
+              <span>AssemblyAI Universal-3.5 Pro</span>
+            </div>
           </div>
         </div>
 

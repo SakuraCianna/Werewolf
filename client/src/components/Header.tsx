@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Language, GamePhase, Role } from 'voice-werewolf-shared';
-import { Moon, Sun, Shield, Sparkles, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { Moon, Sun, Shield, Sparkles, Volume2, VolumeX, RotateCcw, Share2, Users } from 'lucide-react';
 
 interface HeaderProps {
   language: Language;
@@ -14,6 +14,10 @@ interface HeaderProps {
   onToggleMute?: () => void;
   preferredRole?: Role | 'RANDOM';
   onPreferredRoleChange?: (role: Role | 'RANDOM') => void;
+  roomId?: string;
+  isHost?: boolean;
+  humanCount?: number;
+  onOpenInviteModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -28,6 +32,10 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleMute,
   preferredRole = 'RANDOM',
   onPreferredRoleChange,
+  roomId,
+  isHost = true,
+  humanCount = 1,
+  onOpenInviteModal,
 }) => {
   const isZh = language === 'zh-CN';
   const isNight = phase.startsWith('NIGHT');
@@ -123,15 +131,32 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="tracking-wide font-sans">{getPhaseName()}</span>
         </div>
 
+        {/* 房间号与局域网邀请按钮 */}
+        {onOpenInviteModal && (
+          <button
+            onClick={onOpenInviteModal}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-600/25 via-amber-700/30 to-amber-900/40 hover:from-amber-600/40 hover:to-amber-700/50 text-amber-300 border border-amber-500/40 text-xs font-semibold shadow-sm transition-all active:scale-95 cursor-pointer"
+            title={isZh ? '邀请好友局域网联机' : 'Invite Friends to LAN match'}
+          >
+            <Share2 className="w-3.5 h-3.5 text-amber-400" />
+            <span className="font-mono text-[11px] text-amber-200">{roomId || 'ROOM'}</span>
+            <span className="hidden md:inline font-sans text-[11px] text-amber-300/80">
+              {isZh ? `(${humanCount}/6人)` : `(${humanCount}/6)`}
+            </span>
+          </button>
+        )}
+
         {/* 重新开始按钮 (Restart Game) */}
-        <button
-          onClick={onRestart}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-400/50 text-xs font-medium shadow-sm transition-all active:scale-95 cursor-pointer"
-          title={isZh ? '重置并开启新局' : 'Restart New Game'}
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline font-sans">{isZh ? '重新开始' : 'Restart'}</span>
-        </button>
+        {isHost && (
+          <button
+            onClick={onRestart}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-400/50 text-xs font-medium shadow-sm transition-all active:scale-95 cursor-pointer"
+            title={isZh ? '重置并开启新局' : 'Restart New Game'}
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline font-sans">{isZh ? '重新开始' : 'Restart'}</span>
+          </button>
+        )}
 
         {/* 全局声音开关 */}
         {onToggleMute && (
