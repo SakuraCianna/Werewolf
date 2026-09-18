@@ -4,7 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"DengXian"', '"等线"', '"Microsoft YaHei"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['"DengXian"', '"等线"', '"Microsoft YaHei"', 'sans-serif'],
+        mono: ['"DengXian"', '"等线"', '"Microsoft YaHei"', 'sans-serif'],
+        serif: ['"DengXian"', '"等线"', '"Microsoft YaHei"', 'sans-serif'],
       },
       colors: {
         werewolf: {

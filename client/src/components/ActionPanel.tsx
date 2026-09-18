@@ -100,7 +100,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
       {/* 轮到真人发言 */}
       {isHumanTurn && (
         <div className="flex flex-col items-center gap-2 w-full">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-mono animate-pulse">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-sans animate-pulse">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
             <span>
               {isZh

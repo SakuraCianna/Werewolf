@@ -4,6 +4,7 @@ import type {
   WSMessage,
   Language,
   Camp,
+  Role,
 } from 'voice-werewolf-shared';
 
 export interface UseGameSocketOptions {
@@ -110,8 +111,8 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
   }, []);
 
   const startGame = useCallback(
-    (language: Language) => {
-      send('START_GAME', { language });
+    (language: Language, userRole?: Role) => {
+      send('START_GAME', { language, userRole });
       setGameResult(null);
     },
     [send],

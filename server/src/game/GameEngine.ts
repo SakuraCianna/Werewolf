@@ -81,12 +81,27 @@ export class GameEngine {
     );
   }
 
+  private lastUserRole?: Role;
+
   /**
    * 启动游戏
    */
-  public start(language: Language = 'zh-CN', customRoles?: Role[]): void {
+  public start(
+    language: Language = 'zh-CN',
+    customRoles?: Role[],
+    preferredUserRole?: Role,
+  ): void {
     this.state.language = language;
-    this.state.players = RoleManager.initializePlayers(language, customRoles);
+    this.state.players = RoleManager.initializePlayers(
+      language,
+      customRoles,
+      preferredUserRole,
+      this.lastUserRole,
+    );
+    const human = this.state.players.find((p) => p.id === 1);
+    if (human) {
+      this.lastUserRole = human.role;
+    }
     this.state.round = 1;
     this.state.winner = null;
     this.memoryEntries = [];

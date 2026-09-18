@@ -113,7 +113,7 @@ $$M = (I_{base} \times R_{relevance}) \times e^{-\frac{\Delta r}{\tau \cdot P_{t
    - Backend Server: `http://localhost:3001`
 
 ### 🧪 Automated Tests
-Run full vitest suites across 21 test cases:
+Run full vitest suites across 23 test cases:
 ```bash
 npm test
 npm run build

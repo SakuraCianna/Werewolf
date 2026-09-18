@@ -8,6 +8,7 @@ import type {
   GamePhase,
   Language,
   Camp,
+  Role,
 } from 'voice-werewolf-shared';
 import { GameEngine } from '../game/GameEngine.js';
 import { AgentBrain } from '../game/AgentBrain.js';
@@ -32,7 +33,7 @@ export class GameSocketServer {
     this.engine = new GameEngine({
       onPhaseChange: (phase, round, announcement) => {
         this.broadcast('PHASE_CHANGE', { phase, round, announcement });
-        this.handlePhaseAutomation(phase);
+        this.handlePhaseAutomation(phase, announcement);
       },
       onSpeakerChange: (speakerId, maxSeconds) => {
         if (speakerId !== null) {
@@ -86,8 +87,10 @@ export class GameSocketServer {
 
     switch (msg.type) {
       case 'START_GAME': {
+        this.isProcessingAiSpeech = false;
         const language = (payload.language as Language) || 'zh-CN';
-        this.engine.start(language);
+        const userRole = payload.userRole as Role | undefined;
+        this.engine.start(language, undefined, userRole);
         break;
       }
 
@@ -215,13 +218,18 @@ export class GameSocketServer {
         });
       }
 
-      // 4. 等待拟真发言时长后自动切换下一位
-      const simulatedDuration = Math.min(6000, Math.max(2500, decision.speech.length * 80));
+      // 4. 等待真实完整发言时长后自动切换下一位 (中文每字约 280ms，外加 2 秒停顿留白，不设上限硬截断)
+      const charCount = decision.speech.length;
+      const isEnglish = language === 'en-US';
+      const speechDurationMs = isEnglish
+        ? Math.max(4500, Math.round(decision.speech.split(/\s+/).length * 420) + 2000)
+        : Math.max(4500, Math.round(charCount * 280) + 2200);
+
       setTimeout(() => {
         this.broadcast('SPEECH_END', { speakerId });
         this.isProcessingAiSpeech = false;
         this.engine.advanceToNextSpeaker();
-      }, simulatedDuration);
+      }, speechDurationMs);
     }
   }
 
@@ -238,71 +246,83 @@ export class GameSocketServer {
     this.engine.advanceToNextSpeaker();
   }
 
-  private async handlePhaseAutomation(phase: GamePhase): Promise<void> {
+  private async handlePhaseAutomation(phase: GamePhase, announcement?: string): Promise<void> {
     const state = this.engine.getState();
     const human = this.engine.getPlayer(1);
 
+    // 计算法官神谕公告的充足朗读时间，确保法官语音完全播报完毕再流转
+    const announceWaitMs = Math.max(
+      4500,
+      Math.round((announcement ? announcement.length : 15) * 270) + 1600,
+    );
+
     // 夜间阶段自动推进或等待真人操作
     if (phase === 'NIGHT_START') {
-      setTimeout(() => this.engine.transitionTo('NIGHT_WOLF'), 2000);
+      setTimeout(() => this.engine.transitionTo('NIGHT_WOLF'), announceWaitMs);
     } else if (phase === 'NIGHT_WOLF') {
       if (human?.isAlive && human.role === 'WEREWOLF') {
         // 真人是狼人，等待真人夜间选择
       } else {
-        // 全 AI 狼人，自动秒级决定刀人目标
-        const aliveNonWolves = state.players.filter((p) => p.isAlive && p.camp !== 'WOLF');
-        if (aliveNonWolves.length > 0) {
-          const target = aliveNonWolves[Math.floor(Math.random() * aliveNonWolves.length)];
-          this.engine.executeWolfKill(target.id);
-        }
-        setTimeout(() => this.engine.transitionTo('NIGHT_SEER'), 1500);
+        // 全 AI 狼人，等待法官提示语播报完毕后决策刀人并流转
+        setTimeout(() => {
+          const aliveNonWolves = state.players.filter((p) => p.isAlive && p.camp !== 'WOLF');
+          if (aliveNonWolves.length > 0) {
+            const target = aliveNonWolves[Math.floor(Math.random() * aliveNonWolves.length)];
+            this.engine.executeWolfKill(target.id);
+          }
+          this.engine.transitionTo('NIGHT_SEER');
+        }, announceWaitMs);
       }
     } else if (phase === 'NIGHT_SEER') {
       if (human?.isAlive && human.role === 'SEER') {
         // 等待真人预言家查验
       } else {
-        // AI 预言家随机查验一个未查过的存活目标 (仅当 AI 预言家存活时执行)
-        const aliveAiSeer = state.players.find((p) => p.isAlive && p.role === 'SEER' && p.isAI);
-        if (aliveAiSeer) {
-          const unchecked = state.players.filter(
-            (p) =>
-              p.isAlive &&
-              p.id !== aliveAiSeer.id &&
-              !state.seerCheckedHistory.some((h) => h.targetId === p.id),
-          );
-          if (unchecked.length > 0) {
-            this.engine.executeSeerCheck(unchecked[0].id);
+        // 全 AI 预言家，等待法官提示语播报完毕后查验并流转
+        setTimeout(() => {
+          const aliveAiSeer = state.players.find((p) => p.isAlive && p.role === 'SEER' && p.isAI);
+          if (aliveAiSeer) {
+            const unchecked = state.players.filter(
+              (p) =>
+                p.isAlive &&
+                p.id !== aliveAiSeer.id &&
+                !state.seerCheckedHistory.some((h) => h.targetId === p.id),
+            );
+            if (unchecked.length > 0) {
+              this.engine.executeSeerCheck(unchecked[0].id);
+            }
           }
-        }
-        setTimeout(() => this.engine.transitionTo('NIGHT_WITCH'), 1500);
+          this.engine.transitionTo('NIGHT_WITCH');
+        }, announceWaitMs);
       }
     } else if (phase === 'NIGHT_WITCH') {
       if (human?.isAlive && human.role === 'WITCH') {
         // 等待真人女巫选择
       } else {
-        // AI 女巫自动决策 (仅当 AI 女巫存活且有解药与倒牌者时执行)
-        const aliveAiWitch = state.players.find((p) => p.isAlive && p.role === 'WITCH' && p.isAI);
-        if (aliveAiWitch && state.witchInventory.hasAntidote && state.nightVictimId) {
-          this.engine.executeWitchSave();
-        }
-        setTimeout(() => this.engine.transitionTo('DAY_START'), 1500);
+        // 全 AI 女巫，等待法官提示语播报完毕后救人/用药并流转
+        setTimeout(() => {
+          const aliveAiWitch = state.players.find((p) => p.isAlive && p.role === 'WITCH' && p.isAI);
+          if (aliveAiWitch && state.witchInventory.hasAntidote && state.nightVictimId) {
+            this.engine.executeWitchSave();
+          }
+          this.engine.transitionTo('DAY_START');
+        }, announceWaitMs);
       }
     } else if (phase === 'DAY_START') {
-      setTimeout(() => this.engine.transitionTo('DAY_DISCUSS'), 3500);
+      setTimeout(() => this.engine.transitionTo('DAY_DISCUSS'), announceWaitMs);
     } else if (phase === 'DAY_VOTE') {
       // 若真人玩家已死亡，自动推进 AI 投票与放逐结算
       if (!human?.isAlive) {
         setTimeout(async () => {
           await this.executeAiVotes();
           this.engine.transitionTo('DAY_VOTE_RESULT');
-        }, 2000);
+        }, 3000);
       }
     } else if (phase === 'DAY_VOTE_RESULT') {
       setTimeout(() => {
         if (this.engine.getState().winner === null) {
           this.engine.transitionTo('NIGHT_START');
         }
-      }, 4000);
+      }, announceWaitMs + 1000);
     }
   }
 

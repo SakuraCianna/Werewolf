@@ -168,7 +168,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           <div className="w-full h-full rounded-[14px] bg-slate-950/95 flex flex-col items-center justify-center overflow-hidden relative">
             <CrestIcon className={`w-6 h-6 sm:w-7 sm:h-7 ${theme.accent} transition-transform duration-200 group-hover:scale-110`} />
             {!player.isAI && (
-              <span className="absolute bottom-0.5 text-[7px] font-bold tracking-widest text-amber-400 font-mono px-1 py-0.2 rounded bg-amber-950/60 border border-amber-500/30">
+              <span className="absolute bottom-0.5 text-[7px] font-bold tracking-widest text-amber-400 font-sans px-1 py-0.2 rounded bg-amber-950/60 border border-amber-500/30">
                 YOU
               </span>
             )}
@@ -189,7 +189,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         {!player.isAlive && (
           <div className="absolute inset-0 bg-black/85 rounded-2xl flex flex-col items-center justify-center backdrop-blur-[1px] border border-red-900/60 z-20">
             <Skull className="w-6 h-6 text-red-500 drop-shadow-md animate-pulse" />
-            <span className="text-[8px] font-bold text-red-400 mt-0.5 font-mono tracking-widest">OUT</span>
+            <span className="text-[8px] font-bold text-red-400 mt-0.5 font-sans tracking-widest">OUT</span>
           </div>
         )}
       </div>
