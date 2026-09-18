@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import type { Camp, Player, Language } from 'voice-werewolf-shared';
+import type { Camp, Player, Language, PostGameReport } from 'voice-werewolf-shared';
 import {
   Trophy,
   RotateCcw,
@@ -21,6 +21,8 @@ interface GameOverModalProps {
   language: Language;
   onRestart: () => void;
   onClose?: () => void;
+  postGameReport?: PostGameReport | null;
+  myPlayerId?: number;
 }
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({
@@ -30,6 +32,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   language,
   onRestart,
   onClose,
+  postGameReport,
+  myPlayerId = 1,
 }) => {
   const isZh = language === 'zh-CN';
 
@@ -181,7 +185,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 {/* 席位号与存活状态 */}
                 <div className="w-full flex items-center justify-between text-[11px] mb-1.5 font-sans">
                   <span className="font-bold text-slate-200">
-                    {p.id}号 {p.id === 1 ? (isZh ? '(你)' : '(You)') : ''}
+                    {p.id}号 {p.id === myPlayerId ? (isZh ? '(你)' : '(You)') : !p.isAI ? (isZh ? '(好友)' : '(Friend)') : ''}
                   </span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border ${
@@ -211,6 +215,40 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             );
           })}
         </div>
+
+        {/* AI 全景战局战术复盘简报 (LeMUR / DeepSeek 深度生成) */}
+        {postGameReport && (
+          <div className="w-full rounded-2xl p-3.5 sm:p-4 bg-slate-900/90 border border-amber-500/35 mb-5 text-left font-sans shadow-inner">
+            <div className="flex items-center justify-between border-b border-amber-500/20 pb-2 mb-2.5">
+              <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                {isZh ? '✦ AI 圆桌全景战术复盘 ✦' : '✦ AI Match Tactical Review ✦'}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/40 font-semibold">
+                {isZh ? `🏆 本局 MVP: ${postGameReport.mvpPlayerId}号玩家` : `🏆 MVP: #${postGameReport.mvpPlayerId}`}
+              </span>
+            </div>
+
+            <div className="space-y-2 text-xs text-slate-300 leading-relaxed">
+              <p>
+                <strong className="text-amber-300 font-semibold">{isZh ? '【MVP 评定】：' : '[MVP]: '}</strong>
+                <span className="text-slate-200">{postGameReport.mvpReason}</span>
+              </p>
+              <p>
+                <strong className="text-rose-300 font-semibold">{isZh ? '【核心胜负手】：' : '[Key Pivot]: '}</strong>
+                <span className="text-slate-300">{postGameReport.turningPoint}</span>
+              </p>
+              <p>
+                <strong className="text-blue-300 font-semibold">{isZh ? '【双方博弈点评】：' : '[Tactical Breakdown]: '}</strong>
+                <span className="text-slate-300">{postGameReport.tacticalReview}</span>
+              </p>
+              <p>
+                <strong className="text-purple-300 font-semibold">{isZh ? '【潜伏欺骗指数】：' : '[Deception Analysis]: '}</strong>
+                <span className="text-slate-300">{postGameReport.deceptionAnalysis}</span>
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* 底部交互操作区 */}
         <div className="w-full flex items-center justify-center gap-3">

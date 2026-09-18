@@ -18,6 +18,7 @@ interface PlayerCardProps {
   showRole: boolean;
   onSelect?: () => void;
   isSelected?: boolean;
+  myPlayerId?: number;
 }
 
 export const PlayerCard: React.FC<PlayerCardProps> = ({
@@ -27,8 +28,10 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   showRole,
   onSelect,
   isSelected,
+  myPlayerId = 1,
 }) => {
   const isZh = language === 'zh-CN';
+  const isMe = player.id === myPlayerId;
 
   // 专属纹章与色彩主题
   const getCrestTheme = () => {
@@ -39,7 +42,13 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         ring: 'ring-amber-400',
         icon: Compass,
         accent: 'text-amber-300',
-        title: isZh ? '玩家宿主' : 'Commander',
+        title: isMe
+          ? isZh
+            ? '玩家宿主'
+            : 'You'
+          : isZh
+          ? '联机好友'
+          : 'Friend',
       };
     }
     switch (player.id) {
@@ -168,8 +177,14 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           <div className="w-full h-full rounded-[14px] bg-slate-950/95 flex flex-col items-center justify-center overflow-hidden relative">
             <CrestIcon className={`w-6 h-6 sm:w-7 sm:h-7 ${theme.accent} transition-transform duration-200 group-hover:scale-110`} />
             {!player.isAI && (
-              <span className="absolute bottom-0.5 text-[7px] font-bold tracking-widest text-amber-400 font-sans px-1 py-0.2 rounded bg-amber-950/60 border border-amber-500/30">
-                YOU
+              <span
+                className={`absolute bottom-0.5 text-[7px] font-bold tracking-widest font-sans px-1 py-0.2 rounded border ${
+                  isMe
+                    ? 'text-amber-300 bg-amber-950/80 border-amber-500/40'
+                    : 'text-cyan-300 bg-cyan-950/80 border-cyan-500/40'
+                }`}
+              >
+                {isMe ? 'YOU' : 'HUMAN'}
               </span>
             )}
           </div>
@@ -201,6 +216,25 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
             {player.name}
           </span>
         </div>
+
+        {/* 语音智能情绪测谎仪徽章 */}
+        {player.sentiment && (
+          <div className="mt-0.5 inline-flex items-center gap-0.5">
+            <span
+              className={`text-[8px] font-bold font-sans px-1.5 py-0.2 rounded border ${
+                player.sentiment === 'NERVOUS'
+                  ? 'bg-red-950/80 text-red-300 border-red-500/40 animate-pulse'
+                  : player.sentiment === 'AGGRESSIVE'
+                  ? 'bg-amber-950/80 text-amber-300 border-amber-500/40'
+                  : player.sentiment === 'DEFENSIVE'
+                  ? 'bg-blue-950/80 text-blue-300 border-blue-500/40'
+                  : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+              }`}
+            >
+              🎭 {player.sentiment === 'NERVOUS' ? (isZh ? '心虚' : 'Nervous') : player.sentiment === 'AGGRESSIVE' ? (isZh ? '强势' : 'Aggressive') : player.sentiment === 'DEFENSIVE' ? (isZh ? '自辩' : 'Defensive') : (isZh ? '沉稳' : 'Calm')}
+            </span>
+          </div>
+        )}
 
         {/* 身份铭牌 */}
         {showRole ? (

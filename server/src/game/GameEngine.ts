@@ -7,6 +7,8 @@ import type {
   Player,
   MemoryEntry,
   ActionTag,
+  SentimentAnalysisResult,
+  PostGameReport,
 } from 'voice-werewolf-shared';
 import { RoleManager } from './RoleManager.js';
 import { MemoryDecayEngine } from './MemoryDecay.js';
@@ -38,6 +40,7 @@ export class GameEngine {
   private createInitialState(): GameState {
     return {
       roomId: 'werewolf-default',
+      hostPlayerId: 1,
       language: 'zh-CN',
       round: 0,
       phase: 'IDLE',
@@ -59,6 +62,28 @@ export class GameEngine {
 
   public getState(): GameState {
     return { ...this.state };
+  }
+
+  public setRoomId(id: string): void {
+    this.state.roomId = id;
+  }
+
+  public setHostPlayerId(id: number): void {
+    this.state.hostPlayerId = id;
+  }
+
+  public setLatestSentiment(sentiment: SentimentAnalysisResult): void {
+    this.state.latestSentiment = sentiment;
+    const speaker = this.getPlayer(sentiment.speakerId);
+    if (speaker) {
+      speaker.sentiment = sentiment.sentiment;
+    }
+    this.events.onStateUpdate?.(this.state);
+  }
+
+  public setPostGameReport(report: PostGameReport): void {
+    this.state.postGameReport = report;
+    this.events.onStateUpdate?.(this.state);
   }
 
   public getPlayer(id: number): Player | undefined {
@@ -90,6 +115,7 @@ export class GameEngine {
     language: Language = 'zh-CN',
     customRoles?: Role[],
     preferredUserRole?: Role,
+    humanPlayers?: Array<{ id: number; name?: string }>,
   ): void {
     this.state.language = language;
     this.state.players = RoleManager.initializePlayers(
@@ -97,6 +123,7 @@ export class GameEngine {
       customRoles,
       preferredUserRole,
       this.lastUserRole,
+      humanPlayers,
     );
     const human = this.state.players.find((p) => p.id === 1);
     if (human) {
@@ -104,6 +131,8 @@ export class GameEngine {
     }
     this.state.round = 1;
     this.state.winner = null;
+    this.state.latestSentiment = undefined;
+    this.state.postGameReport = undefined;
     this.memoryEntries = [];
 
     this.transitionTo('NIGHT_START');
@@ -352,6 +381,9 @@ export class GameEngine {
   // ================= 投票与放逐 =================
 
   public registerVote(voterId: number, targetId: number): void {
+    if (voterId === targetId) {
+      return; // 严禁投自己
+    }
     const voter = this.getPlayer(voterId);
     const target = this.getPlayer(targetId);
     if (voter && voter.isAlive && target && target.isAlive) {

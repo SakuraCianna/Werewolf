@@ -71,13 +71,14 @@ export class RoleManager {
   }
 
   /**
-   * 初始化 6 人局玩家阵列 (1 位真人 + 5 位 AI)
+   * 初始化 6 人局玩家阵列 (支持 1 ~ 6 位真人联机，其余空闲席位自动由 AI 补齐)
    */
   public static initializePlayers(
     language: Language = 'zh-CN',
     customRoles?: Role[],
     preferredUserRole?: Role,
     lastUserRole?: Role,
+    humanPlayers?: Array<{ id: number; name?: string }>,
   ): Player[] {
     const defaultRoles: Role[] = [
       'WEREWOLF',
@@ -91,7 +92,7 @@ export class RoleManager {
     const roles = customRoles ? [...customRoles] : [...defaultRoles];
     if (!customRoles) {
       if (preferredUserRole && roles.includes(preferredUserRole)) {
-        // 用户指定身份：将该身份置于 1 号位 (roles[0])，其余 5 张牌随机洗牌分配给 AI
+        // 用户指定身份：将该身份置于 1 号位 (roles[0])，其余 5 张牌随机洗牌分配
         const targetIdx = roles.indexOf(preferredUserRole);
         [roles[0], roles[targetIdx]] = [roles[targetIdx], roles[0]];
         for (let i = roles.length - 1; i > 1; i--) {
@@ -114,33 +115,48 @@ export class RoleManager {
     }
 
     const isZh = language === 'zh-CN';
+    const effectiveHumans = humanPlayers && humanPlayers.length > 0 ? humanPlayers : [{ id: 1 }];
+    const humanMap = new Map(effectiveHumans.map((h) => [h.id, h.name]));
     const players: Player[] = [];
 
-    // 1 号固定为真人玩家
-    players.push({
-      id: 1,
-      name: isZh ? '你 (1号)' : 'You (#1)',
-      role: roles[0],
-      camp: this.getCamp(roles[0]),
-      isAI: false,
-      isAlive: true,
-      avatar: '/avatars/human.png',
-    });
+    let aiPersonaIdx = 0;
+    for (let id = 1; id <= 6; id++) {
+      const role = roles[id - 1];
+      const isHuman = humanMap.has(id);
+      const customName = humanMap.get(id);
 
-    // 2 ~ 6 号为 5 位个性鲜明的 AI 玩家
-    for (let i = 1; i < 6; i++) {
-      const persona = AI_PERSONAS[i - 1];
-      const role = roles[i];
-      players.push({
-        id: i + 1,
-        name: isZh ? `${persona.nameZh} (${i + 1}号)` : `${persona.nameEn} (#${i + 1})`,
-        role,
-        camp: this.getCamp(role),
-        isAI: true,
-        isAlive: true,
-        avatar: `/avatars/ai_${i}.png`,
-        persona,
-      });
+      if (isHuman) {
+        let displayName = customName;
+        if (!displayName) {
+          if (id === 1) {
+            displayName = isZh ? '房主 · 你 (1号)' : 'Host · You (#1)';
+          } else {
+            displayName = isZh ? `好友 (${id}号)` : `Friend (#${id})`;
+          }
+        }
+        players.push({
+          id,
+          name: displayName,
+          role,
+          camp: this.getCamp(role),
+          isAI: false,
+          isAlive: true,
+          avatar: '/avatars/human.png',
+        });
+      } else {
+        const persona = AI_PERSONAS[aiPersonaIdx % AI_PERSONAS.length];
+        aiPersonaIdx++;
+        players.push({
+          id,
+          name: isZh ? `${persona.nameZh} (${id}号)` : `${persona.nameEn} (#${id})`,
+          role,
+          camp: this.getCamp(role),
+          isAI: true,
+          isAlive: true,
+          avatar: `/avatars/ai_${id - 1}.png`,
+          persona,
+        });
+      }
     }
 
     return players;

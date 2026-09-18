@@ -5,6 +5,8 @@ import { RoundTable } from './components/RoundTable.js';
 import { LiveSubtitles } from './components/LiveSubtitles.js';
 import { ActionPanel } from './components/ActionPanel.js';
 import { GameOverModal } from './components/GameOverModal.js';
+import { InviteModal } from './components/InviteModal.js';
+import { RoomBlockedModal } from './components/RoomBlockedModal.js';
 import { DevPanel } from './components/DevPanel.js';
 import { useGameSocket } from './hooks/useGameSocket.js';
 import { useAudioRecorder } from './hooks/useAudioRecorder.js';
@@ -18,12 +20,23 @@ export function App() {
   const [muted, setMuted] = useState(sfx.getMuted());
   const [preferredRole, setPreferredRole] = useState<Role | 'RANDOM'>('RANDOM');
   const [showGameOverModal, setShowGameOverModal] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const { playAudioBase64, stopAudio } = useAudioPlayer();
   const serverAudioActiveRef = useRef(false);
   const serverAudioSpeakerIdRef = useRef<number | null>(null);
 
   const {
+    roomId,
+    myPlayerId,
+    isHost,
+    humanCount,
+    maxCapacity,
+    lanIp,
+    rejectionInfo,
+    latestSentiment,
+    postGameReport,
+    switchRoom,
     gameState,
     isConnected,
     announcement,
@@ -93,9 +106,9 @@ export function App() {
     }
   }, [gameState?.phase]);
 
-  // 当轮到真人 (1号) 发言时，播放提示音并自动开启麦克风录音推流 AssemblyAI
+  // 当轮到当前真人客户端发言时，播放提示音并自动开启麦克风录音推流 AssemblyAI
   useEffect(() => {
-    if (activeSpeakerId === 1) {
+    if (activeSpeakerId === myPlayerId) {
       narrator.stop();
       stopAudio();
       sfx.playMicChime();
@@ -103,7 +116,7 @@ export function App() {
     } else {
       stopRecording();
     }
-  }, [activeSpeakerId, startRecording, stopRecording, stopAudio]);
+  }, [activeSpeakerId, myPlayerId, startRecording, stopRecording, stopAudio]);
 
   // 核心语音输出：法官神谕公告更新时，由法官原生合成声线播报
   useEffect(() => {
@@ -114,13 +127,18 @@ export function App() {
 
   // 核心语音输出：AI 玩家发言字幕更新时，由对应角色专属性格声线朗读 (若服务端未返回流式音频则优雅兜底)
   useEffect(() => {
-    if (activeSpeakerId && activeSpeakerId !== 1 && liveTranscript?.text) {
+    if (activeSpeakerId && activeSpeakerId !== myPlayerId && liveTranscript?.text) {
+      const speaker = gameState?.players.find((p) => p.id === activeSpeakerId);
+      // 若当前发言者为联机真人，则由对方真人麦克风发声，不触发本地 TTS
+      if (speaker && !speaker.isAI) {
+        return;
+      }
       if (serverAudioActiveRef.current || serverAudioSpeakerIdRef.current === activeSpeakerId) {
         return;
       }
       narrator.speakPlayer(activeSpeakerId, liveTranscript.text, language);
     }
-  }, [activeSpeakerId, liveTranscript?.text, language]);
+  }, [activeSpeakerId, myPlayerId, liveTranscript?.text, language, gameState?.players]);
 
   const handleStart = () => {
     narrator.stop();
@@ -137,7 +155,7 @@ export function App() {
 
   return (
     <div className="h-screen max-h-screen flex flex-col justify-between bg-runic-grid overflow-hidden select-none">
-      {/* 顶部导航：含身份挑选、重新开始、静音与语言切换 */}
+      {/* 顶部导航：含房间徽章、邀请好友、重新开始、静音与语言切换 */}
       <Header
         language={language}
         onLanguageChange={setLanguage}
@@ -150,6 +168,10 @@ export function App() {
         onToggleMute={handleToggleMute}
         preferredRole={preferredRole}
         onPreferredRoleChange={setPreferredRole}
+        roomId={roomId}
+        isHost={isHost}
+        humanCount={humanCount}
+        onOpenInviteModal={() => setShowInviteModal(true)}
       />
 
       {/* 主界面：暗黑圆桌与实时交互 (严格锁定在视口高度内) */}
@@ -167,15 +189,17 @@ export function App() {
           isGameOver={gameState?.phase === 'GAME_OVER'}
           announcement={announcement}
           phase={gameState?.phase || 'IDLE'}
+          myPlayerId={myPlayerId}
         />
 
-        {/* AssemblyAI 实时同传打字字幕 */}
+        {/* AssemblyAI 实时同传打字字幕与情绪测谎徽章 */}
         <LiveSubtitles
           speakerId={activeSpeakerId}
           speakerName={currentSpeaker?.name || ''}
           transcript={liveTranscript?.text || ''}
           isFinal={liveTranscript?.isFinal ?? false}
           language={language}
+          sentiment={latestSentiment}
         />
 
         {/* 下方控制与技能交互 */}
@@ -194,6 +218,8 @@ export function App() {
             sendVote(targetId);
             setSelectedTargetId(null);
           }}
+          myPlayerId={myPlayerId}
+          isHost={isHost}
         />
       </main>
 
@@ -205,7 +231,7 @@ export function App() {
         onSimulateSpeech={simulateSpeech}
       />
 
-      {/* 终局胜利与全员复盘弹窗 */}
+      {/* 终局胜利与全员复盘弹窗 (含 AI 全景战术复盘简报) */}
       <GameOverModal
         isOpen={Boolean(gameState?.phase === 'GAME_OVER' && showGameOverModal)}
         winner={gameState?.winner ?? gameResult?.winner ?? null}
@@ -213,6 +239,35 @@ export function App() {
         language={language}
         onRestart={handleStart}
         onClose={() => setShowGameOverModal(false)}
+        postGameReport={postGameReport || gameState?.postGameReport}
+        myPlayerId={myPlayerId}
+      />
+
+      {/* 局域网开黑邀请好友弹窗 */}
+      <InviteModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        roomId={roomId}
+        humanCount={humanCount}
+        maxCapacity={maxCapacity}
+        lanIp={lanIp}
+        language={language}
+      />
+
+      {/* 房间满员 / 对局中安全拦截屏障弹窗 */}
+      <RoomBlockedModal
+        isOpen={Boolean(rejectionInfo)}
+        reason={rejectionInfo?.reason || 'INVALID_ROOM'}
+        message={rejectionInfo?.message || ''}
+        language={language}
+        onCreateNewRoom={() => {
+          const newRoom = 'ROOM-' + Math.floor(1000 + Math.random() * 9000);
+          switchRoom(newRoom);
+        }}
+        onReturnHome={() => {
+          const newRoom = 'ROOM-' + Math.floor(1000 + Math.random() * 9000);
+          switchRoom(newRoom);
+        }}
       />
     </div>
   );

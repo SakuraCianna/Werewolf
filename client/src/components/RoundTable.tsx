@@ -13,6 +13,7 @@ interface RoundTableProps {
   announcement: string;
   phase?: string;
   speakingTimerSeconds?: number;
+  myPlayerId?: number;
 }
 
 export const RoundTable: React.FC<RoundTableProps> = ({
@@ -24,6 +25,7 @@ export const RoundTable: React.FC<RoundTableProps> = ({
   isGameOver,
   announcement,
   phase = 'IDLE',
+  myPlayerId = 1,
 }) => {
   const isZh = language === 'zh-CN';
   const isNight = phase.startsWith('NIGHT');
@@ -94,9 +96,10 @@ export const RoundTable: React.FC<RoundTableProps> = ({
               player={player}
               isCurrentSpeaker={activeSpeakerId === player.id}
               language={language}
-              showRole={(!player.isAI && phase !== 'IDLE') || isGameOver}
+              showRole={(!player.isAI && player.id === myPlayerId && phase !== 'IDLE') || isGameOver}
               isSelected={selectedTargetId === player.id}
               onSelect={() => onSelectTarget(player.id)}
+              myPlayerId={myPlayerId}
             />
           </div>
         ))}
