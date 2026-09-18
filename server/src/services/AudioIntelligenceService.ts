@@ -66,10 +66,10 @@ export class AudioIntelligenceService {
       }
     }
 
-    // 启发式语音智能分流
-    const nervousPatterns = /心虚|紧张|别投我|我真的不是|相信我|发誓|骗你|对不起|冤枉|别搞/i;
-    const aggressivePatterns = /铁狼|全票|打死|必出|必出狼|跟我走|撕了|踩死|对跳|强推/i;
-    const defensivePatterns = /自保|表水|自辩|防守|凭什么|盘一下|别乱踩|我是好人/i;
+    // 启发式语音智能分流 (支持中英双语关键词)
+    const nervousPatterns = /心虚|紧张|别投我|我真的不是|相信我|发誓|骗你|对不起|冤枉|别搞|nervous|anxious|swear|please believe|don't vote me|do not vote me/i;
+    const aggressivePatterns = /铁狼|全票|打死|必出|必出狼|跟我走|撕了|踩死|对跳|强推|definitely a wolf|vote him out|vote them out|iron wolf|must vote/i;
+    const defensivePatterns = /自保|表水|自辩|防守|凭什么|盘一下|别乱踩|我是好人|defend|good guy|villager|innocent|listen to me/i;
 
     if (nervousPatterns.test(trimmed)) {
       return {

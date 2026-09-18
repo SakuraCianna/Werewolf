@@ -90,6 +90,10 @@ export class GameEngine {
     return this.state.players.find((p) => p.id === id);
   }
 
+  public getAlivePlayers(): Player[] {
+    return this.state.players.filter((p) => p.isAlive);
+  }
+
   public getMemoryEntries(): MemoryEntry[] {
     return [...this.memoryEntries];
   }
