@@ -13,6 +13,18 @@ export interface UseGameSocketOptions {
   onAudioChunkReceived?: (speakerId: number, base64: string) => void;
 }
 
+export interface ChronicleItem {
+  id: string;
+  type: 'SPEECH' | 'ANNOUNCEMENT';
+  round: number;
+  phase: string;
+  speakerId?: number;
+  speakerName?: string;
+  text: string;
+  sentiment?: SentimentAnalysisResult | null;
+  timestamp: number;
+}
+
 export function useGameSocket(options: UseGameSocketOptions = {}) {
   // 从当前 URL 参数提取或自动生成房间号
   const getInitialRoomId = () => {
@@ -54,6 +66,7 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
   } | null>(null);
   const [latestSentiment, setLatestSentiment] = useState<SentimentAnalysisResult | null>(null);
   const [postGameReport, setPostGameReport] = useState<PostGameReport | null>(null);
+  const [chronicleLogs, setChronicleLogs] = useState<ChronicleItem[]>([]);
 
   const optionsRef = useRef(options);
   optionsRef.current = options;
@@ -129,9 +142,24 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
             setGameState(payload.state as GameState);
             break;
 
-          case 'PHASE_CHANGE':
-            setAnnouncement(payload.announcement as string);
+          case 'PHASE_CHANGE': {
+            const ann = payload.announcement as string;
+            setAnnouncement(ann);
+            if (ann && ann.trim()) {
+              setChronicleLogs((prev) => [
+                ...prev,
+                {
+                  id: `ann_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                  type: 'ANNOUNCEMENT',
+                  round: (payload.round as number) || 1,
+                  phase: (payload.phase as string) || '',
+                  text: ann.trim(),
+                  timestamp: Date.now(),
+                },
+              ]);
+            }
             break;
+          }
 
           case 'SPEECH_START':
             setActiveSpeakerId(payload.speakerId as number);
@@ -142,17 +170,69 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
             setActiveSpeakerId(null);
             break;
 
-          case 'TRANSCRIPT_STREAM':
+          case 'TRANSCRIPT_STREAM': {
+            const spkId = payload.speakerId as number;
+            const txt = (payload.text as string) || '';
+            const isFin = Boolean(payload.isFinal);
             setLiveTranscript({
-              speakerId: payload.speakerId as number,
-              text: payload.text as string,
-              isFinal: payload.isFinal as boolean,
+              speakerId: spkId,
+              text: txt,
+              isFinal: isFin,
+            });
+
+            if (isFin && txt.trim()) {
+              setChronicleLogs((prev) => {
+                const last = prev[prev.length - 1];
+                if (
+                  last &&
+                  last.type === 'SPEECH' &&
+                  last.speakerId === spkId &&
+                  Date.now() - last.timestamp < 15000
+                ) {
+                  return [
+                    ...prev.slice(0, -1),
+                    {
+                      ...last,
+                      text: txt.trim(),
+                      timestamp: Date.now(),
+                    },
+                  ];
+                }
+                return [
+                  ...prev,
+                  {
+                    id: `spk_${Date.now()}_${spkId}`,
+                    type: 'SPEECH',
+                    round: 1,
+                    phase: 'DAY_DISCUSS',
+                    speakerId: spkId,
+                    text: txt.trim(),
+                    timestamp: Date.now(),
+                  },
+                ];
+              });
+            }
+            break;
+          }
+
+          case 'SENTIMENT_DETECTED': {
+            const res = payload as unknown as SentimentAnalysisResult;
+            setLatestSentiment(res);
+            setChronicleLogs((prev) => {
+              for (let i = prev.length - 1; i >= 0; i--) {
+                if (prev[i].type === 'SPEECH' && prev[i].speakerId === res.speakerId) {
+                  const copy = [...prev];
+                  copy[i] = {
+                    ...copy[i],
+                    sentiment: res,
+                  };
+                  return copy;
+                }
+              }
+              return prev;
             });
             break;
-
-          case 'SENTIMENT_DETECTED':
-            setLatestSentiment(payload as unknown as SentimentAnalysisResult);
-            break;
+          }
 
           case 'POST_GAME_REPORT':
             setPostGameReport(payload as unknown as PostGameReport);
@@ -187,6 +267,7 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
   const switchRoom = useCallback(
     (newRoomId: string) => {
       setRejectionInfo(null);
+      setChronicleLogs([]);
       setRoomId(newRoomId);
       // 更新浏览器 URL
       const url = new URL(window.location.href);
@@ -202,6 +283,7 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
       setGameResult(null);
       setPostGameReport(null);
       setLatestSentiment(null);
+      setChronicleLogs([]);
     },
     [send],
   );
@@ -266,5 +348,6 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
     sendVote,
     skipTurn,
     simulateSpeech,
+    chronicleLogs,
   };
 }

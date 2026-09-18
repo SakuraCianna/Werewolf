@@ -84,7 +84,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
               <Wifi className="w-3.5 h-3.5 text-emerald-400" />
               {isZh ? '局域网专属链接 (同 Wi-Fi 手机/电脑访问)' : 'LAN Link (For devices on same Wi-Fi)'}
             </span>
-            <span className="text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.2 rounded border border-emerald-500/30 font-sans">
+            <span className="text-xs text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-500/30 font-sans font-medium">
               {isZh ? '推荐好友使用' : 'Recommended'}
             </span>
           </div>
@@ -155,8 +155,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({
         </div>
 
         {/* 底部提示 */}
-        <div className="w-full flex items-center justify-center gap-1.5 text-[11px] text-amber-400/80 font-sans">
-          <Sparkles className="w-3 h-3 text-amber-400" />
+        <div className="w-full flex items-center justify-center gap-1.5 text-xs text-amber-400/80 font-sans">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>{isZh ? '未被真人占用的空闲席位将自动由 AI 智能体补齐' : 'Empty seats will automatically be filled by AI agents'}</span>
         </div>
       </div>
