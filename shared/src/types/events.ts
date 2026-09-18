@@ -1,7 +1,7 @@
-import type { GamePhase, GameState, Language, Camp, Player } from './game.js';
+import type { GamePhase, GameState, Language, Camp, Player, Role } from './game.js';
 
 export interface ClientToServerEvents {
-  START_GAME: { language: Language };
+  START_GAME: { language: Language; userRole?: Role };
   USER_AUDIO_CHUNK: { pcmBase64: string };
   USER_END_SPEECH: Record<string, never>;
   USER_NIGHT_ACTION: {

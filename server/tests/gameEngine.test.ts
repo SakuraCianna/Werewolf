@@ -164,4 +164,34 @@ describe('GameEngine 游戏状态机与裁判逻辑测试', () => {
     expect(engine.getState().round).toBe(2);
     expect(engine.getState().phase).toBe('NIGHT_START');
   });
+
+  it('支持玩家指定自选身份 (preferredUserRole)，并将该身份精准分配给 1 号真人', () => {
+    const engine = new GameEngine();
+    // 玩家自选预言家
+    engine.start('zh-CN', undefined, 'SEER');
+    expect(engine.getPlayer(1)?.role).toBe('SEER');
+
+    // 重新开启自选狼人
+    engine.start('zh-CN', undefined, 'WEREWOLF');
+    expect(engine.getPlayer(1)?.role).toBe('WEREWOLF');
+
+    // 重新开启自选女巫
+    engine.start('zh-CN', undefined, 'WITCH');
+    expect(engine.getPlayer(1)?.role).toBe('WITCH');
+  });
+
+  it('随机分配模式下避免玩家连续两局拿到完全相同身份', () => {
+    const engine = new GameEngine();
+    engine.start('zh-CN');
+    const firstRole = engine.getPlayer(1)?.role;
+
+    // 连续开局 10 次随机模式，每次发牌均与上一局不同
+    let previousRole = firstRole;
+    for (let i = 0; i < 10; i++) {
+      engine.start('zh-CN');
+      const currentRole = engine.getPlayer(1)?.role;
+      expect(currentRole).not.toBe(previousRole);
+      previousRole = currentRole;
+    }
+  });
 });

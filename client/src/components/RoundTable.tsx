@@ -102,7 +102,7 @@ export const RoundTable: React.FC<RoundTableProps> = ({
               player={player}
               isCurrentSpeaker={activeSpeakerId === player.id}
               language={language}
-              showRole={!player.isAI || isGameOver}
+              showRole={(!player.isAI && phase !== 'IDLE') || isGameOver}
               isSelected={selectedTargetId === player.id}
               onSelect={() => onSelectTarget(player.id)}
             />

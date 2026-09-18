@@ -12,6 +12,19 @@
   --color-emerald: #059669;
 }
 
+*,
+*::before,
+*::after,
+html,
+body,
+#root,
+input,
+button,
+textarea,
+select {
+  font-family: 'DengXian', '等线', 'Microsoft YaHei', sans-serif !important;
+}
+
 html,
 body,
 #root {
@@ -26,7 +39,6 @@ body,
 body {
   background: radial-gradient(circle at 50% 15%, #172238 0%, #080c14 60%, #030407 100%);
   color: #f1f5f9;
-  font-family: 'DengXian', '等线', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

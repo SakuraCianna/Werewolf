@@ -76,6 +76,8 @@ export class RoleManager {
   public static initializePlayers(
     language: Language = 'zh-CN',
     customRoles?: Role[],
+    preferredUserRole?: Role,
+    lastUserRole?: Role,
   ): Player[] {
     const defaultRoles: Role[] = [
       'WEREWOLF',
@@ -88,10 +90,26 @@ export class RoleManager {
 
     const roles = customRoles ? [...customRoles] : [...defaultRoles];
     if (!customRoles) {
-      // 随机洗牌
-      for (let i = roles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [roles[i], roles[j]] = [roles[j], roles[i]];
+      if (preferredUserRole && roles.includes(preferredUserRole)) {
+        // 用户指定身份：将该身份置于 1 号位 (roles[0])，其余 5 张牌随机洗牌分配给 AI
+        const targetIdx = roles.indexOf(preferredUserRole);
+        [roles[0], roles[targetIdx]] = [roles[targetIdx], roles[0]];
+        for (let i = roles.length - 1; i > 1; i--) {
+          const j = 1 + Math.floor(Math.random() * i);
+          [roles[i], roles[j]] = [roles[j], roles[i]];
+        }
+      } else {
+        // 随机发牌：洗牌并在有历史记录时避免连续两局同一身份
+        for (let i = roles.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [roles[i], roles[j]] = [roles[j], roles[i]];
+        }
+        if (lastUserRole && roles[0] === lastUserRole) {
+          const diffIdx = roles.findIndex((r, idx) => idx > 0 && r !== lastUserRole);
+          if (diffIdx !== -1) {
+            [roles[0], roles[diffIdx]] = [roles[diffIdx], roles[0]];
+          }
+        }
       }
     }
 

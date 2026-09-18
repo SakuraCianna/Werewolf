@@ -37,7 +37,7 @@ export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
                 <span className="text-xs font-bold text-amber-300 font-sans tracking-wider">
                   {speakerName || `#${speakerId}`}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-950/60 text-rose-300 border border-rose-500/30 flex items-center gap-1 font-mono">
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-950/60 text-rose-300 border border-rose-500/30 flex items-center gap-1 font-sans">
                   <Mic className="w-2.5 h-2.5" />
                   {isZh ? '发言中' : 'LIVE'}
                 </span>
@@ -51,7 +51,7 @@ export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
           </div>
 
           {/* AssemblyAI 官方权威技术标识 */}
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-blue-300 text-[9px] font-mono tracking-tight shadow-sm">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-blue-300 text-[9px] font-sans tracking-tight shadow-sm">
             <Activity className="w-3 h-3 text-blue-400 animate-pulse" />
             <span>AssemblyAI Universal-3.5 Pro Streaming</span>
           </div>

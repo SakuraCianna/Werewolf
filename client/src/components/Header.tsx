@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Language, GamePhase } from 'voice-werewolf-shared';
+import type { Language, GamePhase, Role } from 'voice-werewolf-shared';
 import { Moon, Sun, Shield, Sparkles, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 
 interface HeaderProps {
@@ -12,6 +12,8 @@ interface HeaderProps {
   onRestart?: () => void;
   muted?: boolean;
   onToggleMute?: () => void;
+  preferredRole?: Role | 'RANDOM';
+  onPreferredRoleChange?: (role: Role | 'RANDOM') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,6 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
   onRestart,
   muted = false,
   onToggleMute,
+  preferredRole = 'RANDOM',
+  onPreferredRoleChange,
 }) => {
   const isZh = language === 'zh-CN';
   const isNight = phase.startsWith('NIGHT');
@@ -43,10 +47,10 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="w-full h-14 shrink-0 flex items-center justify-between px-4 sm:px-6 border-b border-amber-500/20 bg-[#070b12]/90 backdrop-blur-md sticky top-0 z-40 shadow-xl">
-      {/* 品牌标识与技术标牌 */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-rose-800 to-slate-950 p-0.5 shadow-md border border-amber-400/40 flex items-center justify-center">
+    <header className="w-full h-14 bg-slate-950/95 border-b border-amber-500/25 px-3 sm:px-6 flex items-center justify-between shadow-lg backdrop-blur-md z-30 shrink-0 select-none">
+      {/* 品牌标识 */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 via-rose-600 to-amber-700 p-0.5 shadow-md flex items-center justify-center">
           <div className="w-full h-full rounded-[9px] bg-slate-950/80 flex items-center justify-center">
             <Shield className="w-4 h-4 text-amber-400 drop-shadow" />
           </div>
@@ -56,14 +60,14 @@ export const Header: React.FC<HeaderProps> = ({
             <h1 className="text-base sm:text-lg font-bold tracking-wider text-slate-100 font-sans">
               VOICE WEREWOLF
             </h1>
-            <span className="hidden md:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
+            <span className="hidden md:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-sans font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
               <Sparkles className="w-2.5 h-2.5 text-rose-400" /> AssemblyAI v3
             </span>
           </div>
           <div className="flex items-center gap-2 text-[10px] text-slate-400 leading-tight">
             <span>{isZh ? '全语音 AI 狼人杀桌游' : 'Voice Agent Tabletop'}</span>
             <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-            <span className="flex items-center gap-1 font-mono">
+            <span className="flex items-center gap-1 font-sans">
               <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`}></span>
               {isConnected ? (isZh ? '实时在线' : 'Live') : (isZh ? '断线重连' : 'Offline')}
             </span>
@@ -71,8 +75,38 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 状态徽章、重新开始按钮、声音开关与语言锁 */}
+      {/* 状态徽章、身份预选、重新开始按钮、声音开关与语言锁 */}
       <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* 身份预选器 (未开局时可自由指定，开局后锁定) */}
+        {!isGameStarted && onPreferredRoleChange && (
+          <div className="flex items-center gap-1 bg-slate-900/90 border border-amber-500/30 rounded-lg px-2 py-1 shadow-inner">
+            <span className="text-[10px] text-amber-400/90 font-sans hidden lg:inline">
+              {isZh ? '身份挑选:' : 'Role:'}
+            </span>
+            <select
+              value={preferredRole}
+              onChange={(e) => onPreferredRoleChange(e.target.value as Role | 'RANDOM')}
+              className="bg-transparent text-xs text-amber-300 font-sans outline-none cursor-pointer"
+            >
+              <option value="RANDOM" className="bg-slate-900 text-slate-200">
+                {isZh ? '🎲 随机发牌 (防连庄)' : '🎲 Random (No Repeat)'}
+              </option>
+              <option value="WEREWOLF" className="bg-slate-900 text-rose-300">
+                {isZh ? '🐺 潜伏狼人' : '🐺 Werewolf'}
+              </option>
+              <option value="SEER" className="bg-slate-900 text-purple-300">
+                {isZh ? '🔮 洞察预言家' : '🔮 Seer'}
+              </option>
+              <option value="WITCH" className="bg-slate-900 text-emerald-300">
+                {isZh ? '🧪 神秘女巫' : '🧪 Witch'}
+              </option>
+              <option value="VILLAGER" className="bg-slate-900 text-amber-300">
+                {isZh ? '🌾 正义平民' : '🌾 Villager'}
+              </option>
+            </select>
+          </div>
+        )}
+
         {/* 当前对局状态标签 */}
         <div
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all shadow-sm ${

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { Language, GamePhase } from 'voice-werewolf-shared';
+import type { Language, GamePhase, Role } from 'voice-werewolf-shared';
 import { Header } from './components/Header.js';
 import { RoundTable } from './components/RoundTable.js';
 import { LiveSubtitles } from './components/LiveSubtitles.js';
@@ -15,6 +15,7 @@ export function App() {
   const [language, setLanguage] = useState<Language>('zh-CN');
   const [selectedTargetId, setSelectedTargetId] = useState<number | null>(null);
   const [muted, setMuted] = useState(sfx.getMuted());
+  const [preferredRole, setPreferredRole] = useState<Role | 'RANDOM'>('RANDOM');
 
   const { playAudioBase64 } = useAudioPlayer();
 
@@ -95,9 +96,11 @@ export function App() {
   }, [activeSpeakerId, liveTranscript?.text, language]);
 
   const handleStart = () => {
+    narrator.stop();
     narrator.prime();
     sfx.playNightfall();
-    startGame(language);
+    const roleToPass = preferredRole === 'RANDOM' ? undefined : preferredRole;
+    startGame(language, roleToPass);
     setSelectedTargetId(null);
   };
 
@@ -105,7 +108,7 @@ export function App() {
 
   return (
     <div className="h-screen max-h-screen flex flex-col justify-between bg-runic-grid overflow-hidden select-none">
-      {/* 顶部导航：含重新开始、静音与语言切换 */}
+      {/* 顶部导航：含身份挑选、重新开始、静音与语言切换 */}
       <Header
         language={language}
         onLanguageChange={setLanguage}
@@ -116,6 +119,8 @@ export function App() {
         onRestart={handleStart}
         muted={muted}
         onToggleMute={handleToggleMute}
+        preferredRole={preferredRole}
+        onPreferredRoleChange={setPreferredRole}
       />
 
       {/* 主界面：暗黑圆桌与实时交互 (严格锁定在视口高度内) */}
