@@ -185,7 +185,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   return (
     <div
       onClick={player.isAlive && onSelect ? onSelect : undefined}
-      className={`group relative flex flex-col items-center w-full p-2.5 sm:p-3 md:p-3.5 rounded-2xl transition-all duration-300 select-none ${
+      className={`group relative flex flex-col items-center w-full p-1.5 sm:p-2 md:p-2.5 rounded-2xl transition-all duration-300 select-none ${
         onSelect && player.isAlive
           ? 'cursor-pointer hover:-translate-y-1.5 hover:shadow-2xl'
           : ''
@@ -244,7 +244,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         )}
 
         <div
-          className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl p-0.5 bg-gradient-to-br ${
+          className={`relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-2xl p-0.5 bg-gradient-to-br ${
             isCurrentSpeaker
               ? player.sentiment === 'NERVOUS'
                 ? 'from-red-500 via-rose-500 to-amber-500'
@@ -253,7 +253,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           } shadow-lg transition-transform duration-300 group-hover:scale-105`}
         >
           <div className="w-full h-full rounded-[14px] bg-slate-950/95 flex flex-col items-center justify-center overflow-hidden relative shadow-inner">
-            <CrestIcon className={`w-7 h-7 sm:w-8 sm:h-8 ${theme.accent} transition-transform duration-300 group-hover:scale-110 drop-shadow`} />
+            <CrestIcon className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 ${theme.accent} transition-transform duration-300 group-hover:scale-110 drop-shadow`} />
             {!player.isAI && !isMe && (
               <span className="absolute bottom-0.5 text-xs font-bold tracking-wider font-sans px-1.5 py-0.5 rounded border bg-cyan-950/90 text-cyan-300 border-cyan-500/50 scale-90 origin-bottom">
                 HUMAN

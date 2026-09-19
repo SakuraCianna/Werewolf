@@ -177,10 +177,10 @@ export function App() {
       />
 
       {/* 主界面：暗黑圆桌对战区与侧边栏法庭纪事 (严格视口自适应，零纵向滚动条) */}
-      <main className="flex-1 min-h-0 w-full max-w-[1680px] mx-auto px-2 sm:px-3 lg:px-4 py-1.5 flex flex-col lg:flex-row gap-2.5 lg:gap-3.5 overflow-hidden">
+      <main className="flex-1 min-h-0 w-full max-w-[1720px] mx-auto px-2 sm:px-3 py-1 flex flex-row gap-2.5 sm:gap-3.5 overflow-hidden">
         {/* 左侧主战场：圆桌与操作决策台 */}
         <section className="flex-1 min-w-0 min-h-0 flex flex-col justify-between items-center overflow-hidden h-full">
-          <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden p-1">
+          <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden p-0.5">
             <RoundTable
               players={gameState?.players || []}
               activeSpeakerId={activeSpeakerId}
@@ -197,7 +197,7 @@ export function App() {
             />
           </div>
 
-          <div className="w-full shrink-0 pt-1">
+          <div className="w-full shrink-0 pt-0.5">
             <ActionPanel
               gameState={gameState}
               language={language}
@@ -219,8 +219,8 @@ export function App() {
           </div>
         </section>
 
-        {/* 右侧侧边栏：法庭纪事卷轴与实时同传打字机 (用户指定侧边栏布局) */}
-        <aside className="w-full lg:w-76 xl:w-88 flex-shrink-0 h-44 lg:h-full flex flex-col min-h-0 overflow-hidden">
+        {/* 右侧侧边栏：法庭纪事卷轴与实时同传打字机 (始终并排双栏展示，绝不覆盖) */}
+        <aside className="w-[280px] sm:w-[320px] xl:w-[360px] flex-shrink-0 h-full flex flex-col min-h-0 overflow-hidden">
           <LiveSubtitles
             speakerId={activeSpeakerId}
             speakerName={currentSpeaker?.name || ''}
