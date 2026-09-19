@@ -37,11 +37,16 @@ export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
   phase = 'IDLE',
 }) => {
   const isZh = language === 'zh-CN';
-  const logsEndRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // 当编年史日志更新或有新字幕到达时，自动平滑跟进到底部
+  // 当编年史日志更新或有新字幕到达时，仅在当前侧边栏容器内部平滑跟进到底部，绝不滚动外层视口
   useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [chronicleLogs.length, transcript]);
 
   // 情绪声学诊断主题配置
@@ -232,7 +237,7 @@ export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
           </span>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
+        <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2">
           {chronicleLogs.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-4 text-slate-500">
               <ScrollText className="w-8 h-8 mb-2 opacity-30 text-amber-500" />
@@ -302,7 +307,6 @@ export const LiveSubtitles: React.FC<LiveSubtitlesProps> = ({
               </div>
             ))
           )}
-          <div ref={logsEndRef} />
         </div>
       </div>
 

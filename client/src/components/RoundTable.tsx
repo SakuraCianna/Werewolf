@@ -54,7 +54,7 @@ export const RoundTable: React.FC<RoundTableProps> = ({
 
   return (
     <div
-      className={`relative w-full max-w-4xl mx-auto p-3 sm:p-4 md:p-5 rounded-[2.5rem] bg-gradient-to-b ${
+      className={`relative w-full max-w-4xl mx-auto pt-3.5 pb-2.5 px-2.5 sm:pt-4 sm:pb-3.5 sm:px-3.5 md:p-5 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-b ${
         isNight
           ? 'from-[#0b0e1b]/95 via-[#060812] to-[#020308] border-purple-500/35 shadow-[0_12px_50px_rgba(88,28,135,0.25)]'
           : 'from-[#0e1526]/95 via-[#080d18] to-[#030509] border-amber-500/30 shadow-tabletop'
@@ -136,7 +136,7 @@ export const RoundTable: React.FC<RoundTableProps> = ({
       </div>
 
       {/* 6 席位圆桌 3x3 空间阵列 */}
-      <div className="relative z-10 grid grid-cols-3 grid-rows-3 gap-y-2 sm:gap-y-3 md:gap-y-3.5 gap-x-2.5 sm:gap-x-6 md:gap-x-8 items-center justify-items-center w-full">
+      <div className="relative z-10 grid grid-cols-3 grid-rows-3 gap-y-1 sm:gap-y-2.5 md:gap-y-3.5 gap-x-2 sm:gap-x-5 md:gap-x-8 items-center justify-items-center w-full">
         {seatList.map((player) => (
           <div
             key={player.id}

@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
             <h1 className="text-sm sm:text-base md:text-lg font-bold tracking-wider text-slate-100 font-sans truncate">
               VOICE WEREWOLF
             </h1>
-            <span className="hidden lg:inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-sans font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
+            <span className="hidden xl:inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-sans font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
               <Sparkles className="w-3 h-3 text-rose-400" /> AssemblyAI v3
             </span>
           </div>
