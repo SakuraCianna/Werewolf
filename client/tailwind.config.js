@@ -54,6 +54,13 @@ export default {
         'gothic-blood': '0 0 30px -5px rgba(220, 38, 38, 0.5), 0 0 1px 1px rgba(220, 38, 38, 0.7)',
         'tabletop': 'inset 0 0 120px rgba(0, 0, 0, 0.95), 0 20px 50px rgba(0, 0, 0, 0.9)',
       },
+      spacing: {
+        '76': '19rem',
+        '88': '22rem',
+      },
+      backgroundImage: {
+        'radial': 'radial-gradient(circle, var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],

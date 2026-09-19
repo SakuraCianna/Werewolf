@@ -10,6 +10,7 @@ import type {
   Camp,
   Role,
 } from 'voice-werewolf-shared';
+import { generateRandomRoomId } from 'voice-werewolf-shared';
 import { GameEngine, GameEngineEvents } from '../game/GameEngine.js';
 import { AgentBrain } from '../game/AgentBrain.js';
 import { RoomManager, RoomSession } from '../game/RoomManager.js';
@@ -81,14 +82,29 @@ export class GameSocketServer {
   }
 
   private initWebSocket(): void {
-    this.wss.on('connection', (ws) => {
-      // 客户端连接立即默认接入 default-room 并同步状态 (保障无缝即开即玩与单测兼容)
-      const defaultRoomId = 'werewolf-default';
+    this.wss.on('connection', (ws, req) => {
+      // 优先从连接 URL 参数中解析 ?room=xxx，若无则自动随机生成专属房间 (如 WOLF-8392)
+      let initialRoomId: string | null = null;
+      if (req?.url) {
+        try {
+          const parsedUrl = new URL(req.url, 'http://localhost');
+          const roomParam = parsedUrl.searchParams.get('room');
+          if (roomParam && roomParam.trim()) {
+            initialRoomId = roomParam.trim();
+          }
+        } catch {
+          // ignore
+        }
+      }
+      if (!initialRoomId) {
+        initialRoomId = generateRandomRoomId();
+      }
+
       const defaultJoin = this.roomManager.joinRoom(
         ws,
-        defaultRoomId,
+        initialRoomId,
         undefined,
-        this.createEngineEvents(defaultRoomId),
+        this.createEngineEvents(initialRoomId),
       );
 
       if (defaultJoin.success && defaultJoin.session) {
@@ -96,7 +112,7 @@ export class GameSocketServer {
         const maskedState = this.getMaskedState(fullState, defaultJoin.playerId!);
         this.send(ws, 'GAME_STATE_SYNC', { state: maskedState });
         this.send(ws, 'ROOM_INFO_SYNC', {
-          roomId: defaultRoomId,
+          roomId: initialRoomId,
           myPlayerId: defaultJoin.playerId!,
           isHost: defaultJoin.isHost!,
           humanCount: defaultJoin.session.clients.size,
@@ -137,7 +153,7 @@ export class GameSocketServer {
 
     switch (msg.type) {
       case 'JOIN_ROOM': {
-        const targetRoomId = (payload.roomId as string)?.trim() || 'werewolf-default';
+        const targetRoomId = (payload.roomId as string)?.trim() || generateRandomRoomId();
         const playerName = payload.playerName as string | undefined;
 
         // 如果已经在其他房间且不是目标房间，先离开原房间
