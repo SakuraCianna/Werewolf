@@ -230,7 +230,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                 {gameState.seerCheckedHistory.map((h, idx) => (
                   <span
                     key={idx}
-                    className={`px-1.5 py-0.2 rounded border font-semibold text-xs ${
+                    className={`px-1.5 py-0.5 rounded border font-semibold text-xs ${
                       h.isWolf
                         ? 'bg-red-950/80 text-red-300 border-red-500/40'
                         : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
