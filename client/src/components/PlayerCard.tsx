@@ -9,6 +9,8 @@ import {
   Compass,
   Swords,
   Sparkles,
+  ShieldAlert,
+  Scale,
 } from 'lucide-react';
 
 interface PlayerCardProps {
@@ -77,31 +79,76 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           ring: 'ring-red-400',
           icon: Flame,
           accent: 'text-red-300',
-          title: isZh ? '狂热执矛' : 'Aggressive',
+          title: isZh ? '铁血审判' : 'Zealot',
         };
       case 5:
         return {
-          bg: 'from-emerald-900/30 via-slate-900 to-teal-950',
+          bg: 'from-emerald-900/30 via-slate-900 to-slate-950',
           border: 'border-emerald-500/30',
           ring: 'ring-emerald-400',
           icon: Shield,
           accent: 'text-emerald-300',
-          title: isZh ? '温和守御' : 'Defensive',
+          title: isZh ? '稳健守护' : 'Defender',
         };
+      case 6:
       default:
         return {
-          bg: 'from-violet-900/30 via-slate-900 to-slate-950',
-          border: 'border-violet-500/30',
-          ring: 'ring-violet-400',
+          bg: 'from-amber-900/30 via-slate-900 to-yellow-950',
+          border: 'border-amber-500/30',
+          ring: 'ring-amber-400',
           icon: Feather,
-          accent: 'text-violet-300',
-          title: isZh ? '冷峻观察' : 'Skeptical',
+          accent: 'text-amber-300',
+          title: isZh ? '灵巧游侠' : 'Trickster',
         };
     }
   };
 
   const theme = getCrestTheme();
   const CrestIcon = theme.icon;
+
+  // 情绪声学测谎视觉映射
+  const getSentimentConfig = () => {
+    switch (player.sentiment) {
+      case 'NERVOUS':
+        return {
+          halo: 'from-rose-600 via-red-500 to-amber-600 animate-pulse',
+          badgeText: isZh ? '心虚' : 'Nervous',
+          badgeClass: 'bg-red-950/85 text-red-300 border-red-500/50 shadow-red-950/60 animate-pulse',
+          Icon: ShieldAlert,
+        };
+      case 'AGGRESSIVE':
+        return {
+          halo: 'from-amber-500 via-orange-500 to-rose-600 animate-spin-slow',
+          badgeText: isZh ? '强势' : 'Aggressive',
+          badgeClass: 'bg-amber-950/85 text-amber-300 border-amber-500/50 shadow-amber-950/60',
+          Icon: Flame,
+        };
+      case 'DEFENSIVE':
+        return {
+          halo: 'from-blue-600 via-cyan-500 to-indigo-600 animate-spin-slow',
+          badgeText: isZh ? '自辩' : 'Defensive',
+          badgeClass: 'bg-blue-950/85 text-blue-300 border-blue-500/50 shadow-blue-950/60',
+          Icon: Scale,
+        };
+      case 'CALM':
+        return {
+          halo: 'from-emerald-500 via-teal-400 to-emerald-600 animate-spin-slow',
+          badgeText: isZh ? '沉稳' : 'Calm',
+          badgeClass: 'bg-emerald-950/85 text-emerald-300 border-emerald-500/50 shadow-emerald-950/60',
+          Icon: Sparkles,
+        };
+      default:
+        return {
+          halo: 'from-rose-500 via-amber-400 to-rose-600 animate-spin-slow',
+          badgeText: '',
+          badgeClass: '',
+          Icon: Sparkles,
+        };
+    }
+  };
+
+  const sentimentCfg = getSentimentConfig();
+  const SentimentIcon = sentimentCfg.Icon;
 
   const getRoleBadge = () => {
     switch (player.role) {
@@ -144,12 +191,14 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         isSelected
           ? 'ring-2 ring-amber-400 bg-amber-950/40 shadow-gothic-gold scale-[1.02]'
           : isCurrentSpeaker
-            ? 'ring-2 ring-rose-500 shadow-gothic-blood bg-slate-900/95'
+            ? player.sentiment === 'NERVOUS'
+              ? 'ring-2 ring-red-500 shadow-[0_0_22px_rgba(239,68,68,0.45)] bg-slate-900/95'
+              : 'ring-2 ring-rose-500 shadow-gothic-blood bg-slate-900/95'
             : 'bg-gradient-to-b ' + theme.bg + ' border ' + theme.border + ' shadow-gothic-card'
       } ${!player.isAlive ? 'opacity-35 grayscale contrast-125' : ''}`}
     >
       {/* 席位编号金币印鉴 */}
-      <div className="absolute -top-2.5 -left-2 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800 p-0.5 shadow-md flex items-center justify-center z-10">
+      <div className="absolute -top-2.5 -left-2 w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800 p-0.5 shadow-md flex items-center justify-center z-10 transition-transform group-hover:scale-110">
         <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center font-sans text-xs font-bold text-amber-300">
           {player.id}
         </div>
@@ -157,20 +206,32 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 
       {/* 说话中光圈与外发光扩散 */}
       {isCurrentSpeaker && player.isAlive && (
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 opacity-60 blur-sm animate-pulse-glow -z-10"></div>
+        <div
+          className={`absolute -inset-0.5 rounded-2xl opacity-65 blur-sm animate-pulse-glow -z-10 bg-gradient-to-r ${
+            player.sentiment === 'NERVOUS'
+              ? 'from-red-600 to-amber-500'
+              : 'from-rose-500 to-amber-500'
+          }`}
+        ></div>
       )}
 
       {/* 角色纹章徽印与头像 */}
       <div className="relative my-0.5">
-        {/* 说话者外层神圣旋转光晕 (仅底环旋转，中心图标稳固) */}
+        {/* 说话者外层神圣旋转光晕 (根据情绪映射色彩) */}
         {isCurrentSpeaker && player.isAlive && (
-          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-400 to-rose-600 animate-spin-slow opacity-80 blur-[2px]" />
+          <div
+            className={`absolute -inset-1 rounded-2xl opacity-85 blur-[2px] bg-gradient-to-r ${
+              player.sentiment ? sentimentCfg.halo : 'from-rose-500 via-amber-400 to-rose-600 animate-spin-slow'
+            }`}
+          />
         )}
 
         <div
           className={`relative w-13 h-13 sm:w-16 sm:h-16 rounded-2xl p-0.5 bg-gradient-to-br ${
             isCurrentSpeaker
-              ? 'from-amber-400 via-rose-500 to-amber-600'
+              ? player.sentiment === 'NERVOUS'
+                ? 'from-red-500 via-rose-500 to-amber-500'
+                : 'from-amber-400 via-rose-500 to-amber-600'
               : 'from-slate-700/80 via-slate-800 to-slate-900'
           } shadow-lg transition-transform duration-200 group-hover:scale-105`}
         >
@@ -192,7 +253,13 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 
         {/* 说话波形动态频谱条 */}
         {isCurrentSpeaker && player.isAlive && (
-          <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-gradient-to-r from-rose-600 to-amber-600 px-2 py-0.5 rounded-full shadow-lg border border-white/20 z-20">
+          <div
+            className={`absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-2 py-0.5 rounded-full shadow-lg border border-white/20 z-20 ${
+              player.sentiment === 'NERVOUS'
+                ? 'bg-gradient-to-r from-red-600 to-rose-600'
+                : 'bg-gradient-to-r from-rose-600 to-amber-600'
+            }`}
+          >
             <span className="w-0.5 h-2.5 bg-white rounded-full animate-wave-bar"></span>
             <span className="w-0.5 h-4 bg-white rounded-full animate-wave-bar [animation-delay:0.15s]"></span>
             <span className="w-0.5 h-2 bg-white rounded-full animate-wave-bar [animation-delay:0.3s]"></span>
@@ -217,21 +284,14 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           </span>
         </div>
 
-        {/* 语音智能情绪测谎仪徽章 */}
+        {/* 语音智能情绪测谎仪徽章 (带声学微表情图标) */}
         {player.sentiment && (
-          <div className="mt-1 inline-flex items-center gap-0.5">
+          <div className="mt-1 inline-flex items-center gap-0.5" title={isZh ? `声纹情绪指征：${sentimentCfg.badgeText}` : `Voice Sentiment: ${sentimentCfg.badgeText}`}>
             <span
-              className={`text-xs font-semibold font-sans px-2 py-0.5 rounded-full border shadow-sm ${
-                player.sentiment === 'NERVOUS'
-                  ? 'bg-red-950/80 text-red-300 border-red-500/40 animate-pulse'
-                  : player.sentiment === 'AGGRESSIVE'
-                  ? 'bg-amber-950/80 text-amber-300 border-amber-500/40'
-                  : player.sentiment === 'DEFENSIVE'
-                  ? 'bg-blue-950/80 text-blue-300 border-blue-500/40'
-                  : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
-              }`}
+              className={`text-xs font-semibold font-sans px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1 transition-all ${sentimentCfg.badgeClass}`}
             >
-              🎭 {player.sentiment === 'NERVOUS' ? (isZh ? '心虚' : 'Nervous') : player.sentiment === 'AGGRESSIVE' ? (isZh ? '强势' : 'Aggressive') : player.sentiment === 'DEFENSIVE' ? (isZh ? '自辩' : 'Defensive') : (isZh ? '沉稳' : 'Calm')}
+              <SentimentIcon className="w-3 h-3" />
+              <span>{sentimentCfg.badgeText}</span>
             </span>
           </div>
         )}

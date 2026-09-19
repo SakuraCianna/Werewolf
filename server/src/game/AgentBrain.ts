@@ -74,6 +74,28 @@ export class AgentBrain {
       .map(([id, score]) => `${id}号: ${score > 0 ? '+' : ''}${score}`)
       .join(', ') || (isZh ? '中立' : 'Neutral');
 
+    const sentimentSummaries = state.players
+      .filter((p) => p.isAlive && p.sentiment && p.id !== agentId)
+      .map((p) => {
+        const sentimentDesc = isZh
+          ? p.sentiment === 'NERVOUS'
+            ? '显得格外心虚紧张（言辞急促，可能存在谎言伪装）'
+            : p.sentiment === 'AGGRESSIVE'
+              ? '语气高亢强势（进攻性强，急于归票）'
+              : p.sentiment === 'DEFENSIVE'
+                ? '语调谨慎自辩（防守自保）'
+                : '语调沉着从容（逻辑冷静）'
+          : p.sentiment === 'NERVOUS'
+            ? 'Nervous & Anxious (Potential deception detected)'
+            : p.sentiment === 'AGGRESSIVE'
+              ? 'Aggressive & Dominant (Pushing hard)'
+              : p.sentiment === 'DEFENSIVE'
+                ? 'Cautious & Defensive'
+                : 'Calm & Composed';
+        return `${p.id}号[${p.name}]: ${sentimentDesc}`;
+      })
+      .join('\n') || (isZh ? '(全员暂无明显声学异常)' : '(No acoustic anomalies detected)');
+
     return `
 === 角色人设 ===
 姓名: ${persona?.nameZh || me.name} (${agentId}号玩家)
@@ -83,6 +105,10 @@ ${roleHint}
 === 场上公开状态 (第 ${state.round} 回合) ===
 存活玩家: ${alivePlayers.join(', ')}
 已出局玩家: ${deadPlayers.join(', ') || '无'}
+
+=== 场上玩家语音声学测谎指征 (AssemblyAI 情绪智能) ===
+${sentimentSummaries}
+(可参考上述测谎指征辅助辨别真伪：当他人发言显得心虚紧张时，可以适度质疑其是否在编造假身份)
 
 === 你的认知记忆库 (受遗忘曲线衰退) ===
 [清晰细节记忆 (最近/重大事件)]:

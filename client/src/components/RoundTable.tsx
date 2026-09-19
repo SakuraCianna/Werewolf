@@ -53,12 +53,18 @@ export const RoundTable: React.FC<RoundTableProps> = ({
   ];
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto p-2 sm:p-3 md:p-4 rounded-[2rem] bg-gradient-to-b from-[#0e1422]/95 via-[#080d16] to-[#04060a] border border-amber-500/25 shadow-tabletop overflow-hidden flex items-center justify-center">
+    <div
+      className={`relative w-full max-w-4xl mx-auto p-2 sm:p-3 md:p-4 rounded-[2rem] bg-gradient-to-b ${
+        isNight
+          ? 'from-[#0d1020]/95 via-[#070914] to-[#020308] border-purple-500/30 shadow-[0_10px_40px_rgba(88,28,135,0.2)]'
+          : 'from-[#0e1422]/95 via-[#080d16] to-[#04060a] border-amber-500/25 shadow-tabletop'
+      } border overflow-hidden flex items-center justify-center transition-all duration-700`}
+    >
       {/* 典雅中世纪星盘与符文魔法阵动态矢量底纹 */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-15">
         <svg
           viewBox="0 0 500 500"
-          className="w-[480px] h-[480px] animate-spin-slow text-amber-400"
+          className={`w-[480px] h-[480px] animate-spin-slow ${isNight ? 'text-purple-400' : 'text-amber-400'}`}
           fill="none"
           stroke="currentColor"
         >
@@ -81,8 +87,16 @@ export const RoundTable: React.FC<RoundTableProps> = ({
             />
           ))}
         </svg>
-        <div className="absolute w-[320px] h-[320px] rounded-full border border-rose-500/30 animate-spin-reverse-slow"></div>
-        <div className="absolute w-[200px] h-[200px] rounded-full bg-radial from-amber-500/15 via-rose-500/5 to-transparent blur-lg"></div>
+        <div
+          className={`absolute w-[320px] h-[320px] rounded-full border ${
+            isNight ? 'border-purple-500/30' : 'border-rose-500/30'
+          } animate-spin-reverse-slow`}
+        ></div>
+        <div
+          className={`absolute w-[200px] h-[200px] rounded-full bg-radial ${
+            isNight ? 'from-purple-500/15 via-indigo-500/5' : 'from-amber-500/15 via-rose-500/5'
+          } to-transparent blur-lg`}
+        ></div>
       </div>
 
       {/* 6 席位圆桌 3x3 空间阵列 */}
@@ -105,7 +119,11 @@ export const RoundTable: React.FC<RoundTableProps> = ({
         ))}
 
         {/* 圆桌中央核心：天象仪与法官神谕台 */}
-        <div className="col-start-2 row-start-2 w-full h-full max-w-[210px] sm:max-w-[235px] flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/95 via-slate-900/90 to-slate-950/95 border border-amber-500/40 shadow-xl backdrop-blur-md text-center relative group">
+        <div
+          className={`col-start-2 row-start-2 w-full h-full max-w-[210px] sm:max-w-[235px] flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/95 via-slate-900/90 to-slate-950/95 border ${
+            isNight ? 'border-purple-500/40 shadow-purple-950/40' : 'border-amber-500/40 shadow-amber-950/30'
+          } shadow-2xl backdrop-blur-md text-center relative group transition-all duration-500`}
+        >
           {/* 天象徽章 */}
           <div
             className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-1 shadow-md transition-all duration-500 ${
@@ -123,7 +141,11 @@ export const RoundTable: React.FC<RoundTableProps> = ({
 
           {/* 法官神谕公告 */}
           <div className="w-full px-1">
-            <span className="text-xs font-sans uppercase tracking-widest text-amber-400/90 font-bold block mb-1">
+            <span
+              className={`text-xs font-sans uppercase tracking-widest ${
+                isNight ? 'text-purple-300 font-bold' : 'text-amber-400/90 font-bold'
+              } block mb-1`}
+            >
               {isZh ? '✦ 法官神谕 ✦' : '✦ ORACLE VERDICT ✦'}
             </span>
             <p className="text-xs sm:text-sm font-medium text-slate-200 leading-snug line-clamp-2 font-sans drop-shadow-sm">
