@@ -8,6 +8,7 @@ import type {
   SentimentAnalysisResult,
   PostGameReport,
 } from 'voice-werewolf-shared';
+import { generateRandomRoomId } from 'voice-werewolf-shared';
 
 export interface UseGameSocketOptions {
   onAudioChunkReceived?: (speakerId: number, base64: string) => void;
@@ -26,7 +27,7 @@ export interface ChronicleItem {
 }
 
 export function useGameSocket(options: UseGameSocketOptions = {}) {
-  // 从当前 URL 参数提取或自动生成房间号
+  // 从当前 URL 参数提取或自动随机生成狼人杀特色房间号 (例如: WOLF-8392)
   const getInitialRoomId = () => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -37,7 +38,16 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
     } catch {
       // ignore
     }
-    return 'ROOM-' + Math.floor(1000 + Math.random() * 9000);
+    const newRoom = generateRandomRoomId();
+    try {
+      // 自动同步到浏览器地址栏，便于直接复制分享
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', newRoom);
+      window.history.replaceState(null, '', url.toString());
+    } catch {
+      // ignore
+    }
+    return newRoom;
   };
 
   const [roomId, setRoomId] = useState<string>(getInitialRoomId);
@@ -94,9 +104,8 @@ export function useGameSocket(options: UseGameSocketOptions = {}) {
 
   useEffect(() => {
     const wsUrl =
-      window.location.protocol === 'https:'
-        ? `wss://${window.location.hostname}:3001`
-        : `ws://${window.location.hostname}:3001`;
+      (window.location.protocol === 'https:' ? 'wss://' : 'ws://') +
+      `${window.location.hostname}:3001?room=${encodeURIComponent(roomId)}`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;

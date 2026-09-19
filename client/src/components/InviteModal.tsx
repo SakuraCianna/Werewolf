@@ -10,6 +10,8 @@ interface InviteModalProps {
   maxCapacity: number;
   lanIp?: string;
   language: 'zh-CN' | 'en-US';
+  isHost?: boolean;
+  onRegenerateRoom?: () => void;
 }
 
 export const InviteModal: React.FC<InviteModalProps> = ({
@@ -20,6 +22,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   maxCapacity,
   lanIp,
   language,
+  isHost = true,
+  onRegenerateRoom,
 }) => {
   const [copiedType, setCopiedType] = useState<'lan' | 'local' | null>(null);
   const isZh = language === 'zh-CN';
@@ -70,6 +74,18 @@ export const InviteModal: React.FC<InviteModalProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-slate-400">{isZh ? '当前房间：' : 'Room:'}</span>
             <span className="font-mono font-bold text-amber-300 text-sm tracking-wider">{roomId}</span>
+            {isHost && onRegenerateRoom && (
+              <button
+                onClick={() => {
+                  sfx.playMicChime();
+                  onRegenerateRoom();
+                }}
+                className="flex items-center gap-1 ml-1 px-2.5 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold cursor-pointer transition-all active:scale-95 shrink-0"
+                title={isZh ? '重新生成一个全新的随机房间' : 'Roll a new random room'}
+              >
+                <span>{isZh ? '🎲 重新生成新房间' : '🎲 Roll New Room'}</span>
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
             <Users className="w-3.5 h-3.5" />

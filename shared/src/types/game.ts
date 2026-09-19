@@ -93,3 +93,10 @@ export interface GameState {
   latestSentiment?: SentimentAnalysisResult;
   postGameReport?: PostGameReport;
 }
+
+/**
+ * 生成全网唯一的狼人杀风格随机房间号 (例如: WOLF-7492)
+ */
+export function generateRandomRoomId(): string {
+  return 'WOLF-' + Math.floor(1000 + Math.random() * 9000);
+}

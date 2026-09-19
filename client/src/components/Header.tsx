@@ -55,36 +55,36 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="w-full h-14 bg-slate-950/95 border-b border-amber-500/25 px-3 sm:px-6 flex items-center justify-between shadow-lg backdrop-blur-md z-30 shrink-0 select-none">
+    <header className="w-full h-14 bg-slate-950/95 border-b border-amber-500/25 px-2 sm:px-4 md:px-6 flex items-center justify-between shadow-lg backdrop-blur-md z-30 shrink-0 select-none">
       {/* 品牌标识 */}
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 via-rose-600 to-amber-700 p-0.5 shadow-md flex items-center justify-center">
+      <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 via-rose-600 to-amber-700 p-0.5 shadow-md flex items-center justify-center shrink-0">
           <div className="w-full h-full rounded-[9px] bg-slate-950/80 flex items-center justify-center">
             <Shield className="w-4 h-4 text-amber-400 drop-shadow" />
           </div>
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-bold tracking-wider text-slate-100 font-sans">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <h1 className="text-sm sm:text-base md:text-lg font-bold tracking-wider text-slate-100 font-sans truncate">
               VOICE WEREWOLF
             </h1>
-            <span className="hidden md:inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-sans font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
+            <span className="hidden lg:inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-sans font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
               <Sparkles className="w-3 h-3 text-rose-400" /> AssemblyAI v3
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400 leading-tight">
-            <span>{isZh ? '全语音 AI 狼人杀桌游' : 'Voice Agent Tabletop'}</span>
-            <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 leading-tight">
+            <span className="hidden sm:inline">{isZh ? '全语音 AI 狼人杀' : 'Voice Werewolf'}</span>
+            <span className="w-1 h-1 rounded-full bg-slate-600 hidden sm:inline"></span>
             <span className="flex items-center gap-1 font-sans">
               <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`}></span>
-              {isConnected ? (isZh ? '实时在线' : 'Live') : (isZh ? '断线重连' : 'Offline')}
+              {isConnected ? (isZh ? '在线' : 'Live') : (isZh ? '断线' : 'Offline')}
             </span>
           </div>
         </div>
       </div>
 
       {/* 状态徽章、身份预选、重新开始按钮、声音开关与语言锁 */}
-      <div className="flex items-center gap-2 sm:gap-2.5">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* 身份预选器 (未开局时可自由指定，开局后锁定) */}
         {!isGameStarted && onPreferredRoleChange && (
           <div className="flex items-center gap-1 bg-slate-900/90 border border-amber-500/30 rounded-lg px-2 py-1 shadow-inner">

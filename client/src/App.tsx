@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Language, GamePhase, Role } from 'voice-werewolf-shared';
+import { generateRandomRoomId } from 'voice-werewolf-shared';
 import { Header } from './components/Header.js';
 import { RoundTable } from './components/RoundTable.js';
 import { LiveSubtitles } from './components/LiveSubtitles.js';
@@ -176,10 +177,10 @@ export function App() {
       />
 
       {/* 主界面：暗黑圆桌对战区与侧边栏法庭纪事 (严格视口自适应，零纵向滚动条) */}
-      <main className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto px-2 sm:px-4 py-1.5 flex flex-col lg:flex-row gap-3 overflow-hidden">
+      <main className="flex-1 min-h-0 w-full max-w-[1680px] mx-auto px-2 sm:px-3 lg:px-4 py-1.5 flex flex-col lg:flex-row gap-2.5 lg:gap-3.5 overflow-hidden">
         {/* 左侧主战场：圆桌与操作决策台 */}
-        <section className="flex-1 min-h-0 flex flex-col justify-between items-center overflow-hidden h-full">
-          <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
+        <section className="flex-1 min-w-0 min-h-0 flex flex-col justify-between items-center overflow-hidden h-full">
+          <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden p-1">
             <RoundTable
               players={gameState?.players || []}
               activeSpeakerId={activeSpeakerId}
@@ -219,7 +220,7 @@ export function App() {
         </section>
 
         {/* 右侧侧边栏：法庭纪事卷轴与实时同传打字机 (用户指定侧边栏布局) */}
-        <aside className="w-full lg:w-80 xl:w-96 flex-shrink-0 h-44 lg:h-full flex flex-col min-h-0 overflow-hidden">
+        <aside className="w-full lg:w-76 xl:w-88 flex-shrink-0 h-44 lg:h-full flex flex-col min-h-0 overflow-hidden">
           <LiveSubtitles
             speakerId={activeSpeakerId}
             speakerName={currentSpeaker?.name || ''}
@@ -262,6 +263,8 @@ export function App() {
         maxCapacity={maxCapacity}
         lanIp={lanIp}
         language={language}
+        isHost={isHost}
+        onRegenerateRoom={() => switchRoom(generateRandomRoomId())}
       />
 
       {/* 房间满员 / 对局中安全拦截屏障弹窗 */}
@@ -271,12 +274,10 @@ export function App() {
         message={rejectionInfo?.message || ''}
         language={language}
         onCreateNewRoom={() => {
-          const newRoom = 'ROOM-' + Math.floor(1000 + Math.random() * 9000);
-          switchRoom(newRoom);
+          switchRoom(generateRandomRoomId());
         }}
         onReturnHome={() => {
-          const newRoom = 'ROOM-' + Math.floor(1000 + Math.random() * 9000);
-          switchRoom(newRoom);
+          switchRoom(generateRandomRoomId());
         }}
       />
     </div>
